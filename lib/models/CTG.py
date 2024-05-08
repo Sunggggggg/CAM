@@ -25,7 +25,3 @@ class CTG(nn.Module) :
 
 
         return
-
-if __name__ == "__main__" :
-    x = torch.rand((1, 16, 2048))
-    model = CTG()
