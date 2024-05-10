@@ -4,6 +4,8 @@ import torch.nn as nn
 
 from lib.models.DAM import DAM
 
+transpose = lambda x : x.permute(0, 2, 1)
+
 class CAM(nn.Module) :
     def __init__(self, 
                  seqlen=16, 
