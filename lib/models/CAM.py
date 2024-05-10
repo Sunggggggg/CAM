@@ -2,19 +2,26 @@
 import torch
 import torch.nn as nn
 
-from lib.models.CTG import CTG
-from lib.models.transformer import Transformer
+from lib.models.DAM import DAM
 
 class CAM(nn.Module) :
-    def __init__(self, seqlen=16, d_model=2048, num_head=8, spatial_n_layer=3) :
+    def __init__(self, 
+                 seqlen=16, 
+                 d_model=2048, 
+                 num_head=8, 
+                 spatial_n_layer=3,
+                 attn_drop=0.,
+                 proj_drop=0.,
+                 ) :
         super().__init__()
-        self.spatial_attn = Transformer(depth=spatial_n_layer, embed_dim=seqlen, mlp_hidden_dim=seqlen*2, h=num_head, length=d_model)
-        
-    def forward(self, x) :
+        self.dual_attn = DAM(t_dim=d_model, c_dim=seqlen, attn_drop=attn_drop, proj_drop=proj_drop)
+    
+    
+    def forward(self, input, vitpose_j2d=None) :
         """
-        
+        input : [B, T, 2048]
         """
-        x = x.permute(0, 2, 1)
-        x = self.spatial_attn(x)
+        input_enc = self.dual_attn(input)
+
         
-        return x
+        return 
