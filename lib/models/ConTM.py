@@ -25,6 +25,6 @@ class ConTM(nn.Module):
         """
         x_enc = self.dual_attn(x)               # [B, T, D]
         context_feat = self.context_ext(x_enc)  # [B, T, D]
-        fusion_feat = self.fusing(context_feat)
+        fusion_feat = self.fusing(x_enc, context_feat)
 
         return fusion_feat
