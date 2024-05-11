@@ -401,5 +401,5 @@ class Trainer():
 
         for k,v in eval_dict.items():
             self.writer.add_scalar(f'error/{k}', v, global_step=self.epoch)
-        # return accel_err
-        return pa_mpjpe
+        return accel_err
+        #return pa_mpjpe

@@ -3,8 +3,7 @@ import torch
 import torch.nn as nn
 
 class CFM(nn.Module):
-    def __init__(self, 
-                 d_model) :
+    def __init__(self, d_model) :
         super().__init__()
         self.encode = nn.Sequential(
             nn.Linear(d_model, d_model),
@@ -13,6 +12,17 @@ class CFM(nn.Module):
             nn.Linear(d_model, 2*d_model),
         )
 
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            # we use xavier_uniform following official JAX ViT:
+            torch.nn.init.xavier_uniform_(m.weight)
+            if isinstance(m, nn.Linear) and m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x_enc, context_feat) :
         """
