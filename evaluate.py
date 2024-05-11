@@ -269,6 +269,8 @@ if __name__ == "__main__":
             if render:
                 num_frames_to_render = 200
                 imgname = dataset_data[seq_name]['imgname']
+                for n in range(len(imgname)):
+                    imgname[n] = "/mnt/SKY/" + imgname[n][2:]
                 bbox = dataset_data[seq_name]['bbox']
                 pred_cam = np.vstack(pred_thetas).astype(np.float32)[:, :3]
                 img = cv2.imread(imgname[0])
@@ -339,7 +341,7 @@ if __name__ == "__main__":
                 Path(osp.join(out_dir, 'video')).mkdir(parents=True, exist_ok=True)
                 print(f"Saving result video to {osp.abspath(save_path)}")
                 images_to_video(img_folder=osp.join(out_dir, save_seq_name), output_vid_file=save_path)
-                shutil.rmtree(osp.join(out_dir, save_seq_name))
+                #shutil.rmtree(osp.join(out_dir, save_seq_name))
 
             if 'mpii3d' in data_path:
                 target_j3ds = convert_kps(target_j3ds, src='spin', dst='mpii3d_test')
