@@ -55,7 +55,7 @@ class DAM(nn.Module):
         attn = attn.softmax(dim=-1)
         attn = self.c_attn_drop(attn)
 
-        x = (attn @ v).transpose(1, 2).reshape(B, T, C)
+        x = (attn @ v).transpose(1, 2).reshape(B, C, T)
         x = self.c_proj(x)
         x = self.c_proj_drop(x)
 
