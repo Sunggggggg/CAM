@@ -65,31 +65,36 @@ class Layer(nn.Module):
         return self.relu(self.norm(self.proj(x)))
 
 class U_CFM(nn.Module):
-    def __init__(self, seqlen=16, sqe_seqlen=6 ,n_stage=2) :
+    def __init__(self, seqlen=16, sqe_seqlen=6, n_stage=2) :
         super().__init__()
+        self.n_stage = n_stage
         interval = (seqlen-sqe_seqlen) // n_stage
 
-        layers = []
+        self.norm = nn.LayerNorm(2048)
+        self.layers = nn.ModuleList()
         for n in range(n_stage):
             in_features = seqlen - n * interval
             out_features = seqlen - (n+1) * interval
-            layers.append(Layer(in_features, out_features))
+            self.layers.append(Layer(in_features, out_features))
 
         for n in range(n_stage):
             in_features = sqe_seqlen + n * interval
             out_features = sqe_seqlen + (n+1) * interval
-            layers.append(Layer(in_features, out_features))
-        
-        self.u_net = nn.Sequential(*layers)
+            self.layers.append(Layer(in_features, out_features))
 
     def forward(self, x_enc, context_feat):
         """
         x : [B, T, C]
         """
-        x = x_enc + context_feat
+        x0 = x_enc + context_feat       # [B, C, 16]
+        x0 = self.norm(x0)
+        x0 = x0.permute(0, 2, 1)
 
-        x = x.permute(0, 2, 1)      # [B, C, T]
-        x = self.u_net(x)
-        x = x.permute(0, 2, 1) 
+        x1 = self.layers[0](x0)         # [B, C, 11]
+        x2 = self.layers[1](x1)         # [B, C, 6]
 
-        return x
+        x3 = self.layers[2](x2) + x1   # [B, C, 11]
+        x4 = self.layers[3](x3) + x0
+
+        x4 = x4.permute(0, 2, 1)
+        return x4
