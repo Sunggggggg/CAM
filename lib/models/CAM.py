@@ -48,7 +48,7 @@ class CAM(nn.Module) :
             context_feat : [B, T, D]
         """
         split_x_enc = self.proj_enc(x_enc)         # [B, T, d]
-        split_x_enc = self.norm(split_x_enc)
+        split_x_enc = self.norm_enc(split_x_enc)
         
         if self.learnable_alpha :
             self.alpha_activation()             # [1, T]
