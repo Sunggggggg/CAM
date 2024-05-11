@@ -23,7 +23,8 @@ class ConTM(nn.Module):
         """
         input : [B, T, 2048]
         """
-        x_enc = self.dual_attn(x)               # [B, T, D]
+        #x_enc = self.dual_attn(x)               # [B, T, D]
+        x_enc = x
         context_feat = self.context_ext(x_enc)  # [B, T, D]
         fusion_feat = self.fusing(x_enc, context_feat)
 
