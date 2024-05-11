@@ -177,7 +177,7 @@ if __name__ == "__main__":
             'imgname': dataset_data['img_name'][indexes][valids],
             'bbox': dataset_data['bbox'][indexes][valids],
         }
-        data_keyed[u_n]['vitpose_j2d'] = dataset_data['vitpose_joint2d'][indexes][valids].astype('float32')
+
         if 'mpii3d' in data_path:
             data_keyed[u_n]['pose'] = np.zeros((len(valids), 72))
             data_keyed[u_n]['shape'] = np.zeros((len(valids), 10))
@@ -195,10 +195,8 @@ if __name__ == "__main__":
         pbar = tqdm(dataset_data.keys())
         for seq_name in pbar:
             curr_feats = dataset_data[seq_name]['features']
-            curr_vitposes = dataset_data[seq_name]['vitpose_j2d']
             res_save = {}
             curr_feat = torch.tensor(curr_feats).to(device)
-            curr_vitpose = torch.tensor(curr_vitposes).to(device)
 
             num_frames = curr_feat.shape[0]
             vid_names = dataset_data[seq_name]['vid_name']
@@ -210,20 +208,16 @@ if __name__ == "__main__":
             pred_j3ds, pred_verts, pred_rotmats, pred_thetas, scores = [], [], [], [], []
             for curr_idx in range(0, len(chunk_idxes), 8):
                 input_feat = []
-                input_vitpose = []
                 if (curr_idx + 8) < len(chunk_idxes):
                     for ii in range(8):
                         seq_select = get_sequence(chunk_idxes[curr_idx+ii][0], chunk_idxes[curr_idx+ii][1])
                         input_feat.append(curr_feat[None, seq_select, :])
-                        input_vitpose.append(curr_vitpose[None, seq_select, :])
                 else:
                     for ii in range(curr_idx, len(chunk_idxes)):
                         seq_select = get_sequence(chunk_idxes[ii][0], chunk_idxes[ii][1])
                         input_feat.append(curr_feat[None, seq_select, :])
-                        input_vitpose.append(curr_vitpose[None, seq_select, :])
                 input_feat = torch.cat(input_feat, dim=0)
-                input_vitpose = torch.cat(input_vitpose, dim=0)
-                preds, mask_ids, pred_mae = model(input_feat, input_vitpose, J_regressor=J_regressor, is_train=False)
+                preds, mask_ids, pred_mae = model(input_feat, J_regressor=J_regressor, is_train=False)
 
                 n_kp = preds[-1]['kp_3d'].shape[-2]
                 pred_j3d = preds[-1]['kp_3d'].view(-1, n_kp, 3).cpu().numpy()
