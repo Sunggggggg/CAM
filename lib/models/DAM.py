@@ -65,6 +65,9 @@ class DAM(nn.Module):
     def forward(self, x):
         """
         x : [B, T, D]
+        
+        return :
+            fus_enc : [B, T, D]
         """
         temp_enc = self.temporal_attn(x)
         chan_enc = self.channel_atten(x)
