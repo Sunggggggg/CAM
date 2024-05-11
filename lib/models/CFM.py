@@ -84,7 +84,6 @@ class U_CFM(nn.Module):
 
         self.layer1 = Layer(seqlen, hiddenlen)
         self.layer2 = Layer(hiddenlen, seqlen)
-        self.skiplayer = Layer()
 
     def forward(self, x_enc, context_feat):
         """
