@@ -3,7 +3,7 @@ DEBUG: false
 DEBUG_FREQ: 5
 LOGDIR: ''
 DEVICE: 'cuda'
-EXP_NAME: 'Context_baseline_without_dual_attiontion'
+EXP_NAME: 'Context_baseline'
 OUTPUT_DIR: './experiments' # your path
 NUM_WORKERS: 4
 SEED_VALUE: 1
