@@ -18,7 +18,7 @@ class ConTM(nn.Module):
         self.dual_attn = DAM(t_dim=d_model, c_dim=seqlen, attn_drop=attn_drop, proj_drop=proj_drop)
         self.context_ext = CAM(seqlen=seqlen, d_model=2048, learnable_alpha=learnable_alpha)
         # self.fusing = CFM(d_model)
-        self.fusing = U_CFM(seqlen=seqlen, seqlen=6)    #
+        self.fusing = U_CFM(seqlen=seqlen, sqe_seqlen=6)    #
 
     def forward(self, x):
         """
