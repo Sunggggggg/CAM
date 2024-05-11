@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from lib.models.DAM import DAM
 from lib.models.CAM import CAM
-from lib.models.CFM import CFM
+from lib.models.CFM import U_CFM, CFM
 
 class ConTM(nn.Module):
     def __init__(self, 
@@ -17,7 +17,8 @@ class ConTM(nn.Module):
         super().__init__()
         self.dual_attn = DAM(t_dim=d_model, c_dim=seqlen, attn_drop=attn_drop, proj_drop=proj_drop)
         self.context_ext = CAM(seqlen=seqlen, d_model=2048, learnable_alpha=learnable_alpha)
-        self.fusing = CFM(d_model)
+        # self.fusing = CFM(d_model)
+        self.fusing = U_CFM(seqlen=seqlen, seqlen=6)    #
 
     def forward(self, x):
         """

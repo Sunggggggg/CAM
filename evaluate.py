@@ -274,6 +274,8 @@ if __name__ == "__main__":
                 bbox = dataset_data[seq_name]['bbox']
                 pred_cam = np.vstack(pred_thetas).astype(np.float32)[:, :3]
                 img = cv2.imread(imgname[0])
+                if img is None:
+                    continue
                 orig_height, orig_width = img.shape[:2]
                 renderer = Renderer(resolution=(orig_width, orig_height), orig_img=True, wireframe=False)
 
@@ -335,6 +337,7 @@ if __name__ == "__main__":
                     # cv2.putText(img, f'current: {str(scores[count-1][1].round(3))}', (new_width-110, 40), cv2.FONT_HERSHEY_PLAIN, 0.8, (255,255,255))
                     # cv2.putText(img, f'future: {str(scores[count-1][2].round(3))}', (new_width-110, 60), cv2.FONT_HERSHEY_PLAIN, 0.8, (255,255,255))
 
+                    cv2.putText(img, f'current: {str(scores[count-1][1].round(3))}', (new_width-110, 40), cv2.FONT_HERSHEY_PLAIN, 0.8, (255,255,255))
                     cv2.imwrite(osp.join(out_dir, save_seq_name, f'{count:06d}.jpg'), img)
 
                 save_path = osp.join(out_dir, 'video', save_seq_name + ".mp4")
