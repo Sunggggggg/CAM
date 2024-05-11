@@ -2,14 +2,11 @@
 import torch
 import torch.nn as nn
 
-from lib.models.DAM import DAM
-
-transpose = lambda x : x.permute(0, 2, 1)
-
 class CAM(nn.Module) :
     def __init__(self,
                  seqlen=16,
                  d_model=2048,
+                 d_token=128,
                  learnable_alpha=False 
                  ) :
         super().__init__()
@@ -18,13 +15,14 @@ class CAM(nn.Module) :
         assert d_model % seqlen == 0, f"{d_model} % {seqlen} = 0" 
 
         if learnable_alpha :
-            self.alpha = nn.Parameter(torch.ones(1, 1, seqlen-1) * 0.5, requires_grad=False)
+            self.alpha = nn.Parameter(torch.ones(1, d_token) * 0.5, requires_grad=False)
         else :
-            self.alpha = nn.Parameter(torch.randn(1, 1, seqlen-1))
+            self.alpha = nn.Parameter(torch.randn(1, d_token))
 
-        d_token = int(d_model // seqlen)
-        self.split = nn.Linear(d_model, d_token)
-        self.norm = nn.LayerNorm(d_token)
+        self.proj_enc = nn.Linear(d_model, d_token)
+        self.proj_dec = nn.Linear(d_token, d_model)
+        self.norm_enc = nn.LayerNorm(d_token)
+        self.norm_dec = nn.LayerNorm(d_model)
 
         self.apply(self._init_weights)
 
@@ -38,19 +36,33 @@ class CAM(nn.Module) :
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
     
+    def alpha_activation(self, ):
+
+        return
+
     def forward(self, x_enc) :
         """
         x_enc : [B, T, D]
+
+        return :
+            context_feat : [B, T, D]
         """
-        split_x_enc = self.split(x_enc)         # [B, T, D/T]
+        split_x_enc = self.proj_enc(x_enc)         # [B, T, d]
         split_x_enc = self.norm(split_x_enc)
         
-        for t in range(self.seqlen) :
-            if t == 0 :
-            
-            else :
-            
-            split_x_enc[:, t]
-        
+        if self.learnable_alpha :
+            self.alpha_activation()             # [1, T]
 
-        return 
+        context_tokens = []
+        for t in range(self.seqlen) :
+            if t == self.seqlen - 1 :
+                context_token = split_x_enc[:, t]   # [B, d]
+            else :
+                context_token = (split_x_enc[:, t] + self.alpha * split_x_enc[:, t+1]) / (1 + self.alpha)
+            context_tokens.append(context_token)
+        context_feat = torch.stack(context_tokens, dim=1)  # [B, T, d]
+        context_feat = self.proj_dec(context_feat)         # [B, T, D]
+        context_feat = self.norm_dec(context_feat)         
+
+
+        return context_feat
