@@ -62,20 +62,26 @@ def main(cfg):
 
     # ========= Initialize networks, optimizers and lr_schedulers ========= #
     model_module = importlib.import_module('.%s' % cfg.MODEL.MODEL_NAME, 'lib.models')
-    generator = model_module.PTFormer(
+    generator = model_module.GLoT( 
         seqlen=cfg.DATASET.SEQLEN,
-        num_joint=cfg.DATASET.NUM_JOINT,
-        stride=cfg.MODEL.stride_short,
+        batch_size=cfg.TRAIN.BATCH_SIZE,
+        n_layers=cfg.MODEL.n_layers,
         d_model=cfg.MODEL.d_model,
         num_head=cfg.MODEL.num_head,
-        s_n_layer=cfg.MODEL.s_n_layers,
-        t_n_layer=cfg.MODEL.t_n_layers,
-        mask_ratio=cfg.MODEL.mask_ratio,
-        dropout=cfg.MODEL.dropout, 
-        drop_path_r=cfg.MODEL.drop_path_r, 
+        dropout=cfg.MODEL.dropout,
+        drop_path_r=cfg.MODEL.drop_path_r,
         atten_drop=cfg.MODEL.atten_drop,
-        drop_reg_short=cfg.MODEL.drop_reg_short
-    ).to(cfg.DEVICE)
+        mask_ratio=cfg.MODEL.mask_ratio,
+        short_n_layers = cfg.MODEL.short_n_layers,
+        short_d_model = cfg.MODEL.short_d_model,
+        short_num_head = cfg.MODEL.short_num_head,
+        short_dropout = cfg.MODEL.short_dropout, 
+        short_drop_path_r = cfg.MODEL.short_drop_path_r,
+        short_atten_drop = cfg.MODEL.short_atten_drop,
+        stride_short=cfg.MODEL.stride_short,
+        drop_reg_short=cfg.MODEL.drop_reg_short,
+        pretrained=cfg.TRAIN.PRETRAINED_REGRESSOR
+        ).to(cfg.DEVICE)
     logger.info(f'net: {generator}')
 
     net_params = sum(map(lambda x: x.numel(), generator.parameters()))
