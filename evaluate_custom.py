@@ -205,7 +205,7 @@ if __name__ == "__main__":
                         seq_select = get_sequence(chunk_idxes[ii][0], chunk_idxes[ii][1])
                         input_feat.append(curr_feat[None, seq_select, :])
                 input_feat = torch.cat(input_feat, dim=0)
-                preds, mask_ids, pred_mae = model(input_feat, J_regressor=J_regressor, is_train=False)
+                preds = model(input_feat, J_regressor=J_regressor, is_train=False)
 
                 n_kp = preds[-1]['kp_3d'].shape[-2]
                 pred_j3d = preds[-1]['kp_3d'].view(-1, n_kp, 3).cpu().numpy()
