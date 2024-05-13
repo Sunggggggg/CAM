@@ -15,7 +15,7 @@ class ConTM(nn.Module):
                  learnable_alpha=False,
                  ) :
         super().__init__()
-        self.dual_attn = DAM(t_dim=d_model, c_dim=seqlen, attn_drop=attn_drop, proj_drop=proj_drop)
+        #self.dual_attn = DAM(t_dim=d_model, c_dim=seqlen, attn_drop=attn_drop, proj_drop=proj_drop)
         self.context_ext = CAM(seqlen=seqlen, d_model=2048, learnable_alpha=learnable_alpha)
         self.fusing = CFM(d_model)
         # self.fusing = U_CFM(seqlen=seqlen, hiddenlen=seqlen//2)    #
@@ -24,8 +24,8 @@ class ConTM(nn.Module):
         """
         input : [B, T, 2048]
         """
-        x_enc = self.dual_attn(x)               # [B, T, D]
-        #x_enc = x
+        #x_enc = self.dual_attn(x)               # [B, T, D]
+        x_enc = x
         context_feat = self.context_ext(x_enc)  # [B, T, D]
         fusion_feat = self.fusing(x_enc, context_feat)
 

@@ -8,6 +8,7 @@ from lib.models.smpl import SMPL_MEAN_PARAMS, SMPL, SMPL_MODEL_DIR, H36M_TO_J14
 from lib.models.HSCR import KTD
 from lib.models.spin import projection
 from lib.utils.geometry import rot6d_to_rotmat, rotation_matrix_to_angle_axis
+from lib.models.ConTM import ConTM
 
 class Layer(nn.Module) :
     def __init__(self, 
@@ -202,6 +203,7 @@ class UMR(nn.Module):
         #self.mlp1 = Mlp(in_features=d_model*2, out_features=d_model)
 
         # Regressor
+        self.context_fusion = ConTM(seqlen=seqlen, d_model=2048, attn_drop=attn_drop, proj_drop=drop_rate)
         self.regressor = Regressor()
 
     def forward(self, x, is_train=False, J_regressor=None) :
@@ -209,6 +211,7 @@ class UMR(nn.Module):
         x : [B, T, C]
         """
         B, T, = x.shape[:2]
+        x = self.context_fusion(x)
         x = self.input_proj(x)  # [B, T, 256]
 
         x1 = self.down1(x)      # [B, T, 256]   -> [B, T/2, 512]
