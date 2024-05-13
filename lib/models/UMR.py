@@ -192,9 +192,9 @@ class UMR(nn.Module):
         self.up1 = Layer(in_seqlen=seqlen//2, out_seqlen=seqlen, in_dim=d_model*2, out_dim=d_model, depth=1,
               num_head=num_head, drop_path_rate=drop_path_rate, drop_rate=drop_rate, attn_drop=attn_drop, stream="UP")
         
-        self.mlp3 = Mlp(in_features=d_model*8, out_features=d_model*4)
-        self.mlp2 = Mlp(in_features=d_model*4, out_features=d_model*2)
-        self.mlp1 = Mlp(in_features=d_model*2, out_features=d_model)
+        #self.mlp3 = Mlp(in_features=d_model*8, out_features=d_model*4)
+        #self.mlp2 = Mlp(in_features=d_model*4, out_features=d_model*2)
+        #self.mlp1 = Mlp(in_features=d_model*2, out_features=d_model)
 
         # Regressor
         self.regressor = Regressor()
@@ -209,9 +209,9 @@ class UMR(nn.Module):
         x2 = self.down2(x1)     # [B, T/2, 512] -> [B, T/4, 1024]
         x3 = self.down3(x2)     # [B, T/4, 1024]-> [B, T/8, 2048]
 
-        x4 = self.up3(x3) + self.mlp3(x3)   # [B, T/8, 2048] -> [B, T/4, 1024]
-        x5 = self.up2(x4) + self.mlp2(x2)   # [B, T/4, 1024] -> [B, T/2, 512]
-        x6 = self.up1(x5) + self.mlp1(x1)   # [B, T/2, 512] ->  [B, T, 256]
+        x4 = self.up3(x3)   # [B, T/8, 2048] -> [B, T/4, 1024]
+        x5 = self.up2(x4)   # [B, T/4, 1024] -> [B, T/2, 512]
+        x6 = self.up1(x5)   # [B, T/2, 512] ->  [B, T, 256]
         
         if is_train :
             x_out = x6
