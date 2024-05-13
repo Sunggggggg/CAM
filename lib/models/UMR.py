@@ -203,6 +203,7 @@ class UMR(nn.Module):
         """
         x : [B, T, C]
         """
+        B, T, = x.shape[:2]
         x = self.input_proj(x)  # [B, T, 256]
 
         x1 = self.down1(x)      # [B, T, 256]   -> [B, T/2, 512]
@@ -219,6 +220,21 @@ class UMR(nn.Module):
             x_out = x6[:, self.seqlen//2:self.seqlen//2+1]  # [B, 1, 256]
             
         smpl_output = self.regressor(x_out)                 # 
+
+        if is_train :
+            for s in smpl_output :
+                s['theta'] = s['theta'].reshape(B, T, -1)           # [B, 3, 10]
+                s['verts'] = s['verts'].reshape(B, T, -1, 3)        # [B, 3, 6980]
+                s['kp_2d'] = s['kp_2d'].reshape(B, T, -1, 2)        # [B, 3, 2]
+                s['kp_3d'] = s['kp_3d'].reshape(B, T, -1, 3)        # [B, 3, 3]
+                s['rotmat'] = s['rotmat'].reshape(B, T, -1, 3, 3)   # [B, 3, 3, 3]
+        else :
+            for s in smpl_output :
+                s['theta'] = s['theta'].reshape(B, 1, -1)           # [B, 1, 10]
+                s['verts'] = s['verts'].reshape(B, 1, -1, 3)        # [B, 1, 6980]
+                s['kp_2d'] = s['kp_2d'].reshape(B, 1, -1, 2)        # [B, 1, 2]
+                s['kp_3d'] = s['kp_3d'].reshape(B, 1, -1, 3)        # [B, 1, 3]
+                s['rotmat'] = s['rotmat'].reshape(B, 1, -1, 3, 3)   # [B, 1, 3, 3]
 
         return smpl_output
 
