@@ -63,12 +63,10 @@ class Loss(nn.Module):
 
     def forward(
             self,
-            generator_outputs_mae,
-            generator_outputs_short,
+            generator_outputs,
             data_2d,
             data_3d,
             scores,
-            mask_ids,
             data_body_mosh=None,
             data_motion_mosh=None,
             body_discriminator=None,
@@ -90,33 +88,18 @@ class Loss(nn.Module):
 
         # 
         loss_kp_2d_mae, loss_kp_3d_mae, loss_accel_2d_mae, loss_accel_3d_mae, loss_pose_mae, loss_shape_mae  = self.cal_loss(sample_2d_count, \
-            real_2d, real_3d, real_3d_theta, w_3d, w_smpl, reduce, flatten, generator_outputs_mae, mask_ids)
-
-        # 
-        real_2d = real_2d[:, seq_len // 2 - 1: seq_len // 2 + 2]
-        real_3d = data_3d['kp_3d'][:, seq_len // 2 - 1: seq_len // 2 + 2]
-        real_3d_theta = data_3d['theta'][:, seq_len // 2 - 1: seq_len // 2 + 2]
-        w_3d = data_3d['w_3d'].type(torch.bool)[:, seq_len // 2 - 1: seq_len // 2 + 2]
-        w_smpl = data_3d['w_smpl'].type(torch.bool)[:, seq_len // 2 - 1: seq_len // 2 + 2]
-        loss_kp_2d_short, loss_kp_3d_short, loss_accel_2d_short, loss_accel_3d_short, loss_pose_short, loss_shape_short = self.cal_loss(sample_2d_count, \
-            real_2d, real_3d, real_3d_theta, w_3d, w_smpl, reduce, flatten, generator_outputs_short)
+            real_2d, real_3d, real_3d_theta, w_3d, w_smpl, reduce, flatten, generator_outputs)
 
         loss_dict = {
             'loss_kp_2d_mae': loss_kp_2d_mae,
             'loss_kp_3d_mae': loss_kp_3d_mae,
-            'loss_kp_2d_short': loss_kp_2d_short,
-            'loss_kp_3d_short': loss_kp_3d_short,
             'loss_accel_2d_mae': loss_accel_2d_mae, 
             'loss_accel_3d_mae': loss_accel_3d_mae,
-            'loss_accel_2d_short': loss_accel_2d_short,
-            'loss_accel_3d_short': loss_accel_3d_short
         }
 
         if loss_pose_mae is not None:
             loss_dict['loss_pose_mae'] = loss_pose_mae
-            loss_dict['loss_pose_short'] = loss_pose_short
             loss_dict['loss_shape_mae'] = loss_shape_mae
-            loss_dict['loss_shape_short'] = loss_shape_short
             
         gen_loss = torch.stack(list(loss_dict.values())).sum()
 

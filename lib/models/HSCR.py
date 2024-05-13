@@ -82,7 +82,7 @@ class HSCR(nn.Module):
 
     def forward(self, x, init_pose, init_shape, init_cam, is_train=False, J_regressor=None):
         """
-        x               : [B, 1, 256]
+        x               : [B, 3, 256]
         init_pose       : [B, 3, 144] 24*6
         init_shape      : [B, 3, 10]
         init_cam        : [B, 3, 3]
