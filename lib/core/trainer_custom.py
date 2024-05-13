@@ -254,7 +254,7 @@ class Trainer():
                 # <=============
                 inp = target['features']
                 batch = len(inp)
-                preds, mask_ids, pred_mae = self.generator(inp, is_train=False, J_regressor=J_regressor)
+                preds = self.generator(inp, is_train=False)
 
                 # convert to 14 keypoint format for evaluation
                 n_kp = preds[-1]['kp_3d'].shape[-2]
