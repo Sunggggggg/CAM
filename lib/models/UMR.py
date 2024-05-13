@@ -99,7 +99,7 @@ class Regressor(nn.Module):
 
         self.local_reg = KTD(hidden_dim)
 
-    def foward(self, x) :
+    def forward(self, x) :
         """
         x : [B, T, 256] mid frame
         """
