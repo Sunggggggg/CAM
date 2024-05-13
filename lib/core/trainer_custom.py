@@ -254,11 +254,11 @@ class Trainer():
                 # <=============
                 inp = target['features']
                 batch = len(inp)
-                preds = self.generator(inp, is_train=False)
+                preds = self.generator(inp, is_train=False, J_regressor=J_regressor)
 
                 # convert to 14 keypoint format for evaluation
                 n_kp = preds[-1]['kp_3d'].shape[-2]
-                pred_j3d = preds[-1]['kp_3d'].view(-1, n_kp, 3).cpu().numpy()
+                pred_j3d = preds[-1]['kp_3d'].view(-1, n_kp, 3).cpu().numpy()       # [B, ]
                 target_j3d = target['kp_3d'].view(-1, n_kp, 3).cpu().numpy()
                 pred_verts = preds[-1]['verts'].view(-1, 6890, 3).cpu().numpy()
                 target_theta = target['theta'].view(-1, 85).cpu().numpy()

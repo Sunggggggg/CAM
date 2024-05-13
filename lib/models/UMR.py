@@ -99,7 +99,7 @@ class Regressor(nn.Module):
 
         self.local_reg = KTD(hidden_dim)
 
-    def forward(self, x) :
+    def forward(self, x, is_train=False, J_regressor=None) :
         """
         x : [B, T, 256] mid frame
         """
@@ -126,10 +126,10 @@ class Regressor(nn.Module):
         pred_cam = pred_cam.reshape(-1, 3)          # [B, 3]
         batch_size = pred_pose.shape[0]
 
-        out_put = self.get_output(pred_pose, pred_shape, pred_cam, batch_size)
+        out_put = self.get_output(pred_pose, pred_shape, pred_cam, batch_size, is_train, J_regressor)
         return out_put
 
-    def get_output(self, pred_pose, pred_shape, pred_cam, batch_size):
+    def get_output(self, pred_pose, pred_shape, pred_cam, batch_size, is_train, J_regressor):
         """
         pred_pose   : [B, 24*6]
         pred_shape  : [B, 10]
@@ -145,6 +145,11 @@ class Regressor(nn.Module):
 
         pred_vertices = pred_output.vertices        # [B, 6890, 3]
         pred_joints = pred_output.joints            # [B, 49, 3]
+
+        if not is_train and J_regressor is not None:
+            J_regressor_batch = J_regressor[None, :].expand(pred_vertices.shape[0], -1, -1).to(pred_vertices.device)
+            pred_joints = torch.matmul(J_regressor_batch, pred_vertices)
+            pred_joints = pred_joints[:, H36M_TO_J14, :]
 
         pred_keypoints_2d = projection(pred_joints, pred_cam)
 
@@ -199,7 +204,7 @@ class UMR(nn.Module):
         # Regressor
         self.regressor = Regressor()
 
-    def forward(self, x, is_train=False) :
+    def forward(self, x, is_train=False, J_regressor=None) :
         """
         x : [B, T, C]
         """
@@ -219,7 +224,7 @@ class UMR(nn.Module):
         else :
             x_out = x6[:, self.seqlen//2:self.seqlen//2+1]  # [B, 1, 256]
             
-        smpl_output = self.regressor(x_out)                 # 
+        smpl_output = self.regressor(x_out, is_train, J_regressor)                 # 
 
         if is_train :
             for s in smpl_output :
