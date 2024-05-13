@@ -103,7 +103,7 @@ class Regressor(nn.Module):
         """
         x : [B, T, 256] mid frame
         """
-        B, T = x.shape
+        B, T = x.shape[:2]
         init_pose = self.init_pose.expand(B, T, -1)
         init_shape = self.init_shape.expand(B, T, -1)
         init_cam = self.init_cam.expand(B, T, -1)
@@ -117,8 +117,8 @@ class Regressor(nn.Module):
         xc_pose_cam = self.fc2(xc_pose_cam)             # [B, 1, 256+144] => [B, 1, hidden_dim]
         xc_pose_cam = self.drop2(xc_pose_cam)
        
-        pred_pose = self.local_reg(xc_pose_cam, pred_pose) + pred_pose
-        pred_shape = self.decshape(xc_shape_cam) + pred_shape  
+        pred_pose = self.local_reg(xc_pose_cam, init_pose) + init_pose
+        pred_shape = self.decshape(xc_shape_cam) + init_shape  
         pred_cam = self.deccam(torch.cat([xc_pose_cam, xc_shape_cam, init_cam], -1)) + init_cam
 
         pred_pose = pred_pose.reshape(-1, 144)      # [B, 24*6]
@@ -217,7 +217,7 @@ class UMR(nn.Module):
             x_out = x6
         else :
             x_out = x6[:, self.seqlen//2:self.seqlen//2+1]  # [B, 1, 256]
-
+            
         smpl_output = self.regressor(x_out)                 # 
 
         return smpl_output
