@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from lib.models.trans_operator import Mlp
 from lib.models.transformer import Transformer
-from lib.models.smpl import SMPL_MEAN_PARAMS, SMPL, SMPL_MODEL_DIR
+from lib.models.smpl import SMPL_MEAN_PARAMS, SMPL, SMPL_MODEL_DIR, H36M_TO_J14
 from lib.models.HSCR import KTD
 from lib.models.spin import projection
 from lib.utils.geometry import rot6d_to_rotmat, rotation_matrix_to_angle_axis
