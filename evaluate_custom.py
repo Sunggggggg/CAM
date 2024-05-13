@@ -255,7 +255,7 @@ if __name__ == "__main__":
 
             """ Rendering """
             if render:
-                num_frames_to_render = 200
+                num_frames_to_render = 1500
                 imgname = dataset_data[seq_name]['imgname']
                 for n in range(len(imgname)):
                     imgname[n] = "/mnt/SKY/" + imgname[n][2:]
