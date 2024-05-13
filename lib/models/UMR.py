@@ -230,11 +230,11 @@ class UMR(nn.Module):
                 s['rotmat'] = s['rotmat'].reshape(B, T, -1, 3, 3)   # [B, 3, 3, 3]
         else :
             for s in smpl_output :
-                s['theta'] = s['theta'].reshape(B, 1, -1)           # [B, 1, 10]
-                s['verts'] = s['verts'].reshape(B, 1, -1, 3)        # [B, 1, 6980]
-                s['kp_2d'] = s['kp_2d'].reshape(B, 1, -1, 2)        # [B, 1, 2]
-                s['kp_3d'] = s['kp_3d'].reshape(B, 1, -1, 3)        # [B, 1, 3]
-                s['rotmat'] = s['rotmat'].reshape(B, 1, -1, 3, 3)   # [B, 1, 3, 3]
+                s['theta'] = s['theta'].reshape(B, -1)           # [B, 1, 10]
+                s['verts'] = s['verts'].reshape(B, -1, 3)        # [B, 1, 6980]
+                s['kp_2d'] = s['kp_2d'].reshape(B, -1, 2)        # [B, 1, 2]
+                s['kp_3d'] = s['kp_3d'].reshape(B, -1, 3)        # [B, 1, 3]
+                s['rotmat'] = s['rotmat'].reshape(B, -1, 3, 3)   # [B, 1, 3, 3]
 
         return smpl_output
 
