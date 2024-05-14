@@ -7,17 +7,13 @@ class CAM(nn.Module) :
                  seqlen=16,
                  d_model=2048,
                  d_token=128,
-                 learnable_alpha=False 
+                 alpha=0.9,
                  ) :
         super().__init__()
         self.seqlen = seqlen
-        self.learnable_alpha = learnable_alpha
         assert d_model % seqlen == 0, f"{d_model} % {seqlen} = 0" 
 
-        if learnable_alpha :
-            self.alpha = nn.Parameter(torch.ones(1, d_token) * 0.5, requires_grad=False)
-        else :
-            self.alpha = nn.Parameter(torch.randn(1, d_token))
+        self.alpha = nn.Parameter(torch.ones(1, d_token) * alpha, requires_grad=False)
 
         self.proj_enc = nn.Linear(d_model, d_token)
         self.proj_dec = nn.Linear(d_token, d_model)
@@ -36,10 +32,6 @@ class CAM(nn.Module) :
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
     
-    def alpha_activation(self, ):
-
-        return
-
     def forward(self, x_enc) :
         """
         x_enc : [B, T, D]
@@ -49,9 +41,6 @@ class CAM(nn.Module) :
         """
         split_x_enc = self.proj_enc(x_enc)         # [B, T, d]
         split_x_enc = self.norm_enc(split_x_enc)
-        
-        if self.learnable_alpha :
-            self.alpha_activation()             # [1, T]
 
         context_tokens = []
         for t in range(self.seqlen) :

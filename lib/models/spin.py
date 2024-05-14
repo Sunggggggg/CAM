@@ -215,7 +215,7 @@ class Regressor(nn.Module):
 
         npose = 24 * 6
 
-        self.fc1 = nn.Linear(512 * 4 + npose + 13, 1024)
+        self.fc1 = nn.Linear(512 * 4 + npose + 13, 1024)    #  2048 + 24*6(pose) + 10(shape) + 3(cam)
         self.drop1 = nn.Dropout()
         self.fc2 = nn.Linear(1024, 1024)
         self.drop2 = nn.Dropout()
