@@ -55,7 +55,7 @@ class ATM(nn.Module):
         # Accumulated Token
         ##########################
         x_enc = self.pose_shape_proj(x)                 # [B, T, 512]
-        context_feat = self.context_tokenizer(x)        # [B, T, 512]
+        context_feat = self.context_tokenizer(x_enc)    # [B, T, 512]
         x_enc = self.fusing(x_enc, context_feat)        # 
         ps_feat = self.pose_shape_encoder(x_enc)
         pred_pose, pred_shape = self.regressor(ps_feat) #
