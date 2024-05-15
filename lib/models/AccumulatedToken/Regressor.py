@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from lib.models.smpl import SMPL_MEAN_PARAMS
+from lib.models.smpl import SMPL_MEAN_PARAMS, H36M_TO_J14
+from lib.utils.geometry import rotation_matrix_to_angle_axis, rot6d_to_rotmat
 
 class CamRegressor(nn.Module) :
     def __init__(self, d_model=256, smpl_mean_params=SMPL_MEAN_PARAMS) :
@@ -76,10 +77,7 @@ class Regressor(nn.Module):
 
         return pred_pose, pred_shape
 
-from lib.models.smpl import SMPL, SMPL_MODEL_DIR, H36M_TO_J14
-from lib.utils.geometry import rotation_matrix_to_angle_axis, rot6d_to_rotmat
-smpl = SMPL(SMPL_MODEL_DIR, batch_size=64, create_transl=False)
-def regressor_output(pred_pose, pred_shape, pred_cam, seqlen, J_regressor=None) :
+def regressor_output(smpl, pred_pose, pred_shape, pred_cam, seqlen, J_regressor=None) :
     """
     pred_pose, pred_shape, pred_cam : [BT, (24*6)(10)(3)]
     """

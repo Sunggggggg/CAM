@@ -6,6 +6,7 @@ from lib.models.CAM import CAM
 from lib.models.CFM import CFM
 from lib.models.AccumulatedToken.enc_dec import ED_Transformer
 from lib.models.AccumulatedToken.Regressor import CamRegressor, Regressor, regressor_output
+from lib.models.smpl import SMPL, SMPL_MODEL_DIR
 
 """Accumulated Token Module"""
 class ATM(nn.Module):
@@ -40,6 +41,11 @@ class ATM(nn.Module):
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
         self.fusing = CFM(embed_dim)
         self.regressor = Regressor(embed_dim)
+
+        ##########################
+        # SMPL
+        ##########################
+        self.smpl = SMPL(SMPL_MODEL_DIR, batch_size=64, create_transl=False)
 
     def forward(self, x, is_train=False, J_regressor=None) :
         """
@@ -80,6 +86,6 @@ class ATM(nn.Module):
         pred_cam = self.regressor_cam(cam_feat)             # [B, T, 3]
         pred_pose, pred_shape = self.regressor(ps_feat)     #
 
-        output = regressor_output(pred_pose, pred_shape, pred_cam, size, J_regressor=J_regressor)
+        output = regressor_output(self.smpl, pred_pose, pred_shape, pred_cam, size, J_regressor=J_regressor)
 
         return output
