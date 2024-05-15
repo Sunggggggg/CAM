@@ -32,6 +32,7 @@ class ATM(nn.Module):
         ##########################
         # Accumulated Token
         ##########################
+        self.pose_shape_proj = nn.Linear(2048, embed_dim)
         self.context_tokenizer = CAM(seqlen=seqlen, d_model=2048, d_token=embed_dim)
         self.pose_shape_encoder = ED_Transformer(depth=po_sh_layer_depth, embed_dim=embed_dim, mlp_hidden_dim=embed_dim*2, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
@@ -53,9 +54,10 @@ class ATM(nn.Module):
         ##########################
         # Accumulated Token
         ##########################
-        context_feat = self.context_tokenizer(x)        # [B, T, 256]
-        x = self.fusing(x, context_feat)
-        ps_feat = self.pose_shape_encoder(x)
+        x_enc = self.pose_shape_proj(x)                 # [B, T, 512]
+        context_feat = self.context_tokenizer(x)        # [B, T, 512]
+        x_enc = self.fusing(x_enc, context_feat)        # 
+        ps_feat = self.pose_shape_encoder(x_enc)
         pred_pose, pred_shape = self.regressor(ps_feat) #
 
         ##########################
