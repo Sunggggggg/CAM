@@ -73,6 +73,6 @@ class ATM(nn.Module):
         ##########################
         output = regressor_output(pred_pose, pred_shape, pred_cam, self.seqlen, J_regressor=J_regressor)
 
-        for v in output[-1].values():
+        for v in output.values():
             print(v.shape)
         return output
