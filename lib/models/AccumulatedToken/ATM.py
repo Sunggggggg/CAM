@@ -41,23 +41,22 @@ class ATM(nn.Module):
         self.fusing = CFM(embed_dim)
         self.regressor = Regressor(embed_dim)
 
-    def forward(self, x, J_regressor=None) :
+    def forward(self, x, is_train=False, J_regressor=None) :
         """
         Input 
             x : [B, T, 2048]
         Return
-            'theta'  : [B, T, ]
-            'verts'  : 
-            'kp_2d'  : 
-            'kp_3d'  : 
-            'rotmat' : 
+            'theta'  : [B, T, 85]
+            'verts'  : [B, T, 6890, 3]
+            'kp_2d'  : [B, T, 49, 2]
+            'kp_3d'  : [B, T, 49, 3]
+            'rotmat' : [B, T, 24, 3, 3]
         """
         ##########################
         # Camera parameter 
         ##########################
         cam_feat = self.cam_proj(x)                 # [B, T, d]
         cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, d]
-        pred_cam = self.regressor_cam(cam_feat)     # [B, T, 3]
 
         ##########################
         # Accumulated Token
@@ -66,13 +65,21 @@ class ATM(nn.Module):
         context_feat = self.context_tokenizer(x_enc)    # [B, T, 512]
         x_enc = self.fusing(x_enc, context_feat)        # 
         ps_feat = self.pose_shape_encoder(x_enc)
-        pred_pose, pred_shape = self.regressor(ps_feat) #
 
         ##########################
-        # Output
+        # Regressor
         ##########################
-        output = regressor_output(pred_pose, pred_shape, pred_cam, self.seqlen, J_regressor=J_regressor)
+        if is_train :
+            size = self.seqlen
+        else :
+            size = 1
+            mid_frame = self.seqlen // 2
+            cam_feat = cam_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
+            ps_feat = ps_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
+        
+        pred_cam = self.regressor_cam(cam_feat)             # [B, T, 3]
+        pred_pose, pred_shape = self.regressor(ps_feat)     #
 
-        for v in output[-1].values():
-            print(v.shape)
+        output = regressor_output(pred_pose, pred_shape, pred_cam, size, J_regressor=J_regressor)
+
         return output

@@ -87,19 +87,19 @@ class Loss(nn.Module):
         w_smpl = data_3d['w_smpl'].type(torch.bool)
 
         # 
-        loss_kp_2d_mae, loss_kp_3d_mae, loss_accel_2d_mae, loss_accel_3d_mae, loss_pose_mae, loss_shape_mae  = self.cal_loss(sample_2d_count, \
+        loss_kp_2d, loss_kp_3d, loss_accel_2d, loss_accel_3d, loss_pose, loss_shape  = self.cal_loss(sample_2d_count, \
             real_2d, real_3d, real_3d_theta, w_3d, w_smpl, reduce, flatten, generator_outputs)
 
         loss_dict = {
-            'loss_kp_2d_mae': loss_kp_2d_mae,
-            'loss_kp_3d_mae': loss_kp_3d_mae,
-            'loss_accel_2d_mae': loss_accel_2d_mae, 
-            'loss_accel_3d_mae': loss_accel_3d_mae,
+            'loss_kp_2d': loss_kp_2d,
+            'loss_kp_3d': loss_kp_3d,
+            'loss_accel_2d': loss_accel_2d, 
+            'loss_accel_3d': loss_accel_3d,
         }
 
-        if loss_pose_mae is not None:
-            loss_dict['loss_pose_mae'] = loss_pose_mae
-            loss_dict['loss_shape_mae'] = loss_shape_mae
+        if loss_pose is not None:
+            loss_dict['loss_pose'] = loss_pose
+            loss_dict['loss_shape'] = loss_shape
             
         gen_loss = torch.stack(list(loss_dict.values())).sum()
 
