@@ -98,6 +98,9 @@ def regressor_output(smpl, pred_pose, pred_shape, pred_cam, seqlen, J_regressor=
         J_regressor_batch = J_regressor[None, :].expand(pred_vertices.shape[0], -1, -1).to(pred_vertices.device)
         pred_joints = torch.matmul(J_regressor_batch, pred_vertices)
         pred_joints = pred_joints[:, H36M_TO_J14, :]
+        n_joint = 14
+    else :
+        n_joint = 49
 
     pred_keypoints_2d = projection(pred_joints, pred_cam)
 
@@ -105,9 +108,9 @@ def regressor_output(smpl, pred_pose, pred_shape, pred_cam, seqlen, J_regressor=
 
     output = [{
         'theta'  : torch.cat([pred_cam, pose, pred_shape], dim=1).view(-1, seqlen, 85),
-        'verts'  : pred_vertices.view(-1, seqlen,6890, 3),
-        'kp_2d'  : pred_keypoints_2d.view(-1, seqlen, 49, 2),
-        'kp_3d'  : pred_joints.view(-1, seqlen, 49, 3),
+        'verts'  : pred_vertices.view(-1, seqlen, 6890, 3),
+        'kp_2d'  : pred_keypoints_2d.view(-1, seqlen, n_joint, 2),
+        'kp_3d'  : pred_joints.view(-1, seqlen, n_joint, 3),
         'rotmat' : pred_rotmat.view(-1, seqlen, 24, 3, 3)
     }]
 
