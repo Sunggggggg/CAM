@@ -308,7 +308,7 @@ class Trainer():
                 print(f'Learning rate {param_group["lr"]}')
                 self.writer.add_scalar('lr/gen_lr', param_group['lr'], global_step=self.epoch)
             
-            if epoch + 1 >= self.val_epoch:
+            if (epoch + 1) % 10 == 0:
                 logger.info(f'Epoch {epoch+1} performance: {performance:.4f}')
                 self.save_model(performance, epoch)
 
@@ -329,18 +329,18 @@ class Trainer():
         filename = osp.join(self.logdir, f'checkpoint.pth.tar')
         torch.save(save_dict, filename)
 
-        if self.performance_type == 'min':
-            is_best = performance < self.best_performance
-        else:
-            is_best = performance > self.best_performance
+        # if self.performance_type == 'min':
+        #     is_best = performance < self.best_performance
+        # else:
+        #     is_best = performance > self.best_performance
 
-        if is_best:
-            logger.info('Best performance achived, saving it!')
-            self.best_performance = performance
-            shutil.copyfile(filename, osp.join(self.logdir, f'model_best_{epoch}.pth.tar'))
+        # if is_best:
+        #     logger.info('Best performance achived, saving it!')
+        #     self.best_performance = performance
+        #     shutil.copyfile(filename, osp.join(self.logdir, f'model_best_{epoch}.pth.tar'))
 
-            with open(osp.join(self.logdir, 'best.txt'), 'w') as f:
-                f.write(str(float(performance)))
+        #     with open(osp.join(self.logdir, 'best.txt'), 'w') as f:
+        #         f.write(str(float(performance)))
 
     def resume_pretrained(self, model_path):
         if osp.isfile(model_path):

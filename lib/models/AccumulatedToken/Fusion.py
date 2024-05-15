@@ -33,5 +33,8 @@ class FusingBlock(nn.Module):
         """
         Input
             x, y : [B, T, D]
-        
         """
+        fus_feat = self.crossatttn(x, y)
+
+        return fus_feat
+        
