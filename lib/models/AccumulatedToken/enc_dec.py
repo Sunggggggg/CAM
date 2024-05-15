@@ -28,7 +28,7 @@ class ED_Transformer(nn.Module):
                 drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer)
             for i in range(depth)])
         self.decoder_embed = nn.Linear(embed_dim, embed_dim, bias=True)
-        self.decoder_pos_embed = nn.Parameter(torch.zeros(1, length, embed_dim // 2))
+        #self.decoder_pos_embed = nn.Parameter(torch.zeros(1, length, embed_dim))
         self.decoder_norm = norm_layer(embed_dim)
     
     def forward_encoder(self, x) :
@@ -42,7 +42,7 @@ class ED_Transformer(nn.Module):
 
     def forward_decoder(self, x) :
         x = self.decoder_embed(x)
-        x = x + self.decoder_pos_embed
+        x = x + self.pos_embed
 
         for blk in self.decoder_blocks:
             x = blk(x)
