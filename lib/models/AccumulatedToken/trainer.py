@@ -293,7 +293,7 @@ class Trainer():
                 print(f'Learning rate {param_group["lr"]}')
                 self.writer.add_scalar('lr/gen_lr', param_group['lr'], global_step=self.epoch)
             
-            if (epoch + 1) % 10 == 0:
+            if ((epoch + 1) % 10 == 0) and (epoch + 1 >= self.val_epoch) :
                 logger.info(f'Epoch {epoch+1} performance: {performance:.4f}')
                 self.save_model(performance, epoch)
 
