@@ -188,11 +188,11 @@ class Trainer():
             total_loss = gen_loss
 
             losses.update(total_loss.item(), inp.size(0))
-            kp_2d_loss.update(loss_dict['loss_kp_2d_mae'].item(), inp.size(0))
-            kp_3d_loss.update(loss_dict['loss_kp_3d_mae'].item(), inp.size(0))
+            kp_2d_loss.update(loss_dict['loss_kp_2d'].item(), inp.size(0))
+            kp_3d_loss.update(loss_dict['loss_kp_3d'].item(), inp.size(0))
 
-            accel_loss_2d.update(loss_dict['loss_accel_2d_mae'].item(), inp.size(0))
-            accel_loss_3d.update(loss_dict['loss_accel_3d_mae'].item(), inp.size(0))
+            accel_loss_2d.update(loss_dict['loss_accel_2d'].item(), inp.size(0))
+            accel_loss_3d.update(loss_dict['loss_accel_3d'].item(), inp.size(0))
 
             timer['backward'] = time.time() - start
             timer['batch'] = timer['data'] + timer['forward'] + timer['loss'] + timer['backward']
