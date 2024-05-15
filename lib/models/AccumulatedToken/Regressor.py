@@ -79,7 +79,7 @@ class Regressor(nn.Module):
 from lib.models.smpl import SMPL, SMPL_MODEL_DIR, H36M_TO_J14
 from lib.utils.geometry import rotation_matrix_to_angle_axis, rot6d_to_rotmat
 smpl = SMPL(SMPL_MODEL_DIR, batch_size=64, create_transl=False)
-def regressor_output(pred_pose, pred_shape, pred_cam, J_regressor=None) :
+def regressor_output(pred_pose, pred_shape, pred_cam, seqlen, J_regressor=None) :
     """
     pred_pose, pred_shape, pred_cam : [BT, (24*6)(10)(3)]
     """
@@ -105,13 +105,13 @@ def regressor_output(pred_pose, pred_shape, pred_cam, J_regressor=None) :
 
     pose = rotation_matrix_to_angle_axis(pred_rotmat.reshape(-1, 3, 3)).reshape(-1, 72)
 
-    output = [{
-        'theta'  : torch.cat([pred_cam, pose, pred_shape], dim=1),
-        'verts'  : pred_vertices,
-        'kp_2d'  : pred_keypoints_2d,
-        'kp_3d'  : pred_joints,
-        'rotmat' : pred_rotmat
-    }]
+    output = {
+        'theta'  : torch.cat([pred_cam, pose, pred_shape], dim=1).view(-1, seqlen, 85),
+        'verts'  : pred_vertices.view(-1, seqlen,6890, 3),
+        'kp_2d'  : pred_keypoints_2d.view(-1, seqlen, 49, 2),
+        'kp_3d'  : pred_joints.view(-1, seqlen, 49, 3),
+        'rotmat' : pred_rotmat.view(-1, seqlen, 24, 3, 3)
+    }
 
     return output
 
