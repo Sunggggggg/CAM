@@ -8,6 +8,8 @@ class ED_Transformer(nn.Module):
     def __init__(self, depth=3, embed_dim=128, mlp_hidden_dim=256, h=8, 
                  drop_rate=0.1, drop_path_rate=0.2, attn_drop_rate=0., length=16):
         super().__init__()
+        qkv_bias = True
+        qk_scale = None
 
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
         self.pos_embed = nn.Parameter(torch.zeros(1, length, embed_dim))
