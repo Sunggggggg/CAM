@@ -20,6 +20,7 @@ class ATM(nn.Module):
                  attn_drop_rate=0.0,
                  ) :
         super().__init__()
+        self.seqlen = seqlen
         ##########################
         # Camera parameter 
         ##########################
@@ -70,7 +71,7 @@ class ATM(nn.Module):
         ##########################
         # Output
         ##########################
-        output = regressor_output(pred_pose, pred_shape, pred_cam, J_regressor=J_regressor)
+        output = regressor_output(pred_pose, pred_shape, pred_cam, self.seqlen, J_regressor=J_regressor)
 
         for v in output[-1].values():
             print(v.shape)
