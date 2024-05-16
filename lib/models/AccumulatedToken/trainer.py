@@ -301,9 +301,11 @@ class Trainer():
                     'performance': performance,
                     'gen_optimizer': self.gen_optimizer.state_dict(),
                 }
-
-                filename = osp.join(self.logdir, f'checkpoint.pth.tar')
+                filename = osp.join(self.logdir, f'model{epoch + 1}.pth.tar')
                 torch.save(save_dict, filename)
+
+            filename = osp.join(self.logdir, f'checkpoint.pth.tar')
+            torch.save(save_dict, filename)
 
             # lr decay
             if self.lr_scheduler is not None:
