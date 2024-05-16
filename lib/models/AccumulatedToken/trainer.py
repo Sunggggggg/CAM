@@ -293,19 +293,13 @@ class Trainer():
                 print(f'Learning rate {param_group["lr"]}')
                 self.writer.add_scalar('lr/gen_lr', param_group['lr'], global_step=self.epoch)
             
-            save_dict = {
-                    'epoch': epoch,
-                    'gen_state_dict': self.generator.state_dict(),
-                    'performance': performance,
-                    'gen_optimizer': self.gen_optimizer.state_dict()}
+            save_dict = {'epoch': epoch, 'gen_state_dict': self.generator.state_dict(), 'gen_optimizer': self.gen_optimizer.state_dict()}
             filename = osp.join(self.logdir, f'checkpoint.pth.tar')
             torch.save(save_dict, filename)
-            
+
             if (epoch + 1) % 10 == 0 :
                 filename = osp.join(self.logdir, f'model{epoch + 1}.pth.tar')
                 torch.save(save_dict, filename)
-
-            
 
             # lr decay
             if self.lr_scheduler is not None:
