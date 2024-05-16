@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from lib.models.DAM import DAM
 from lib.models.CAM import CAM
 from lib.models.CFM import CFM
 from lib.models.AccumulatedToken.enc_dec import ED_Transformer
@@ -23,6 +24,11 @@ class ATM(nn.Module):
                  ) :
         super().__init__()
         self.seqlen = seqlen
+        ##########################
+        # ST transformer
+        ##########################
+        self.dual_atten = DAM(t_dim=2048, c_dim=seqlen, attn_drop=attn_drop_rate, proj_drop=drop_rate)
+
         ##########################
         # Camera parameter 
         ##########################
@@ -63,6 +69,8 @@ class ATM(nn.Module):
         ##########################
         # Camera parameter 
         ##########################
+        x = self.dual_atten(x)
+
         cam_feat = self.cam_proj(x)                 # [B, T, d]
         cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, d]
 
