@@ -17,31 +17,44 @@ class WM(nn.Module):
                  ) :
         super().__init__()
         self.embed_dim = embed_dim
-        self.proj = nn.Linear(2048, embed_dim)
+        self.cam_proj = nn.Linear(2048, embed_dim//2)
+        self.cam_enc_dec = ED_Transformer(depth=cam_layer_depth, embed_dim=embed_dim//2, mlp_hidden_dim=embed_dim*2, 
+                                       h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
+                                       attn_drop_rate=attn_drop_rate, length=seqlen)
 
+        self.pose_shape_proj = nn.Linear(2048, embed_dim)
         self.pose_shape_encoder = ED_Transformer(depth=po_sh_layer_depth, embed_dim=embed_dim, mlp_hidden_dim=embed_dim*2, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
 
-    def forward(self, x) :
-        """
-        Input 
-            x : [B, T, 2048]
-        """
+    def refine_input(self, x):
         B, T = x.shape[:2]
-        x = self.proj(x)
+        x = self.pose_shape_proj(x)
         
         c_feats = []
         for t in range(1, T) :
             c_feat_a = x[:, t, :self.embed_dim//2]        # [B, 256]
             p_feat_b = x[:, t-1, self.embed_dim//2:]      # [B, 256]
-
             
             p_feat_b = self.scale[:, t] * p_feat_b + self.shift[:, t]   # Warpping
 
             c_feat = torch.cat([c_feat_a, p_feat_b], dim=-1)
             c_feats.append(c_feat)
         c_feats = torch.stack(c_feats, dim=1)
+
+    def forward(self, x) :
+        """
+        Input 
+            x : [B, T, 2048]
+        """
+        ##########################
+        # Camera parameter 
+        ##########################
+        cam_feat = self.cam_proj(x)                 # [B, T, d]
+        cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, 128]
+
+        
+        
 
         # Transformer
         # transformer(c_feats)
