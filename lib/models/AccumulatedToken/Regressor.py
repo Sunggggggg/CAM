@@ -131,7 +131,7 @@ class Total_Regressor(nn.Module):
 
         xc_pose_cam = self.fc2(xc_pose_cam)             # [B, 1, 256+144] => [B, 1, hidden_dim]
         xc_pose_cam = self.drop2(xc_pose_cam)
-
+    
         pred_pose = self.local_reg(xc_pose_cam, pred_pose) + pred_pose
         pred_shape = self.decshape(xc_shape_cam) + pred_shape  
         pred_cam = self.deccam(torch.cat([xc_pose_cam, xc_shape_cam, pred_cam], -1)) + pred_cam
