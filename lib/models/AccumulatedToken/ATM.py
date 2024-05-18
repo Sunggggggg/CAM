@@ -6,7 +6,7 @@ from lib.models.DAM import DAM
 from lib.models.CAM import CAM
 from lib.models.CFM import CFM
 from lib.models.AccumulatedToken.enc_dec import ED_Transformer
-from lib.models.AccumulatedToken.Regressor import CamRegressor, Regressor, regressor_output
+from lib.models.AccumulatedToken.Regressor import CamRegressor, Regressor, regressor_output, Total_Regressor
 from lib.models.smpl import SMPL, SMPL_MODEL_DIR
 from lib.models.AccumulatedToken.Fusion import FusingBlock   
 
@@ -27,7 +27,7 @@ class ATM(nn.Module):
         ##########################
         # ST transformer
         ##########################
-        self.dual_atten = DAM(t_dim=2048, c_dim=seqlen, attn_drop=attn_drop_rate, proj_drop=drop_rate)
+        #self.dual_atten = DAM(t_dim=2048, c_dim=seqlen, attn_drop=attn_drop_rate, proj_drop=drop_rate)
 
         ##########################
         # Camera parameter 
@@ -36,7 +36,7 @@ class ATM(nn.Module):
         self.cam_enc_dec = ED_Transformer(depth=cam_layer_depth, embed_dim=embed_dim//2, mlp_hidden_dim=embed_dim*2, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
-        self.regressor_cam = CamRegressor(d_model=embed_dim//2)
+        #self.regressor_cam = CamRegressor(d_model=embed_dim//2)
 
         ##########################
         # Accumulated Token
@@ -48,7 +48,8 @@ class ATM(nn.Module):
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
         self.fusing = CFM(embed_dim)
         #self.fusing = FusingBlock(embed_dim)
-        self.regressor = Regressor(embed_dim)
+        #self.regressor = Regressor(embed_dim)
+        self.regressor =Total_Regressor(embed_dim//2 + embed_dim)
 
         ##########################
         # SMPL
@@ -69,10 +70,10 @@ class ATM(nn.Module):
         ##########################
         # Camera parameter 
         ##########################
-        x = self.dual_atten(x)
+        #x = self.dual_atten(x)
 
         cam_feat = self.cam_proj(x)                 # [B, T, d]
-        cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, d]
+        cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, 128]
 
         ##########################
         # Accumulated Token
@@ -93,8 +94,10 @@ class ATM(nn.Module):
             cam_feat = cam_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
             ps_feat = ps_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
         
-        pred_cam = self.regressor_cam(cam_feat)             # [B, T, 3]
-        pred_pose, pred_shape = self.regressor(ps_feat)     #
+        # pred_cam = self.regressor_cam(cam_feat)                 # [B, T, 3]
+        # pred_pose, pred_shape = self.regressor(ps_feat)         #
+        feat = torch.cat([ps_feat, cam_feat], dim=-1)
+        pred_pose, pred_shape, pred_cam = self.regressor(feat)
 
         output = regressor_output(self.smpl, pred_pose, pred_shape, pred_cam, size, J_regressor=J_regressor)
 

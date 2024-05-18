@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import torch.nn as nn
+
+from lib.models.HSCR import KTD
 from lib.models.smpl import SMPL_MEAN_PARAMS, H36M_TO_J14
 from lib.utils.geometry import rotation_matrix_to_angle_axis, rot6d_to_rotmat
 
@@ -76,6 +78,69 @@ class Regressor(nn.Module):
             pred_shape = self.decshape(xc) + pred_shape
 
         return pred_pose, pred_shape
+
+""" Total Regressor"""
+class Total_Regressor(nn.Module):
+    def __init__(self, d_model=256, smpl_mean_params=SMPL_MEAN_PARAMS, hidden_dim=1024, drop=0.5) :
+        super().__init__()
+        mean_params = np.load(smpl_mean_params)
+        init_pose = torch.from_numpy(mean_params['pose'][:]).unsqueeze(0)
+        init_shape = torch.from_numpy(mean_params['shape'][:].astype('float32')).unsqueeze(0)
+        init_cam = torch.from_numpy(mean_params['cam']).unsqueeze(0)
+
+        self.register_buffer('init_cam', init_cam)  # 3
+        self.register_buffer('init_pose', init_pose)
+        self.register_buffer('init_shape', init_shape)
+
+        npose = 24 * 6
+
+        self.fc1 = nn.Linear(d_model + 10, hidden_dim)    #  2048 + 24*6(pose) + 10(shape) + 3(cam)
+        self.drop1 = nn.Dropout(drop)
+        self.fc2 = nn.Linear(d_model + npose, hidden_dim)
+        self.drop2 = nn.Dropout(drop)
+
+        self.decpose = nn.Linear(hidden_dim, npose)
+        self.decshape = nn.Linear(hidden_dim, 10)
+        self.deccam = nn.Linear(hidden_dim * 2 + 3, 3)
+
+        self.local_reg = KTD(hidden_dim)
+        
+        nn.init.xavier_uniform_(self.decpose.weight, gain=0.01)
+        nn.init.xavier_uniform_(self.decshape.weight, gain=0.01)
+        nn.init.xavier_uniform_(self.deccam.weight, gain=0.01)
+
+    def forward(self, x, n_iter=3):
+        """
+        Input
+            x : [B, T, d]
+
+        Return 
+        """
+        x = x.reshape(-1, x.size(-1))               # [BT, 256]
+        BT = x.shape[0]
+
+        pred_pose = self.init_pose.expand(BT, -1)       # [BT, 144]
+        pred_shape = self.init_shape.expand(BT, -1)     # [BT, 10]
+        pred_cam = self.init_cam.expand(BT, -1)         # [BT, 3]
+        
+        xc_shape_cam = torch.cat([x, pred_shape], -1)   # [BT, 10+d]
+        xc_pose_cam = torch.cat([x, pred_pose], -1)     # [BT, 144+d]
+
+        xc_shape_cam = self.fc1(xc_shape_cam)           # [B, 1, 256+10] => [B, 1, hidden_dim]
+        xc_shape_cam = self.drop1(xc_shape_cam)
+
+        xc_pose_cam = self.fc2(xc_pose_cam)             # [B, 1, 256+144] => [B, 1, hidden_dim]
+        xc_pose_cam = self.drop2(xc_pose_cam)
+
+        pred_pose = self.local_reg(xc_pose_cam, pred_pose) + pred_pose
+        pred_shape = self.decshape(xc_shape_cam) + pred_shape  
+        pred_cam = self.deccam(torch.cat([xc_pose_cam, xc_shape_cam, pred_cam], -1)) + pred_cam
+
+        pred_pose = pred_pose.reshape(-1, 144)      # [B, 24*6]
+        pred_shape = pred_shape.reshape(-1, 10)     # [B, 10]
+        pred_cam = pred_cam.reshape(-1, 3)          # [B, 3]
+
+        return pred_pose, pred_shape, pred_cam
 
 def regressor_output(smpl, pred_pose, pred_shape, pred_cam, seqlen, J_regressor=None) :
     """
