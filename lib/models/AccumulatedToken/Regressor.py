@@ -94,12 +94,12 @@ class Total_Regressor(nn.Module):
 
         npose = 24 * 6
 
-        # self.proj = nn.Linear(d_model + npose + 10 + 3, hidden_dim)
-        # self.drop = nn.Dropout()
+        self.proj = nn.Linear(d_model + npose + 10 + 3, hidden_dim)
+        self.drop = nn.Dropout()
 
-        # self.decpose0 = nn.Linear(hidden_dim, npose)
-        # self.decshape0 = nn.Linear(hidden_dim, 10)
-        # self.deccam0 = nn.Linear(hidden_dim, 3)
+        self.decpose0 = nn.Linear(hidden_dim, npose)
+        self.decshape0 = nn.Linear(hidden_dim, 10)
+        self.deccam0 = nn.Linear(hidden_dim, 3)
 
         self.fc1 = nn.Linear(d_model + 10, hidden_dim)    #  2048 + 24*6(pose) + 10(shape) + 3(cam)
         self.drop1 = nn.Dropout(drop)
@@ -130,14 +130,14 @@ class Total_Regressor(nn.Module):
         pred_shape = self.init_shape.expand(BT, -1)     # [BT, 10]
         pred_cam = self.init_cam.expand(BT, -1)         # [BT, 3]
         
-        # for i in range(n_iter):
-        #     xc = torch.cat([x, pred_pose, pred_shape, pred_cam], dim=-1)
-        #     xc = self.proj(xc)
-        #     xc = self.drop(xc)
+        for i in range(n_iter):
+            xc = torch.cat([x, pred_pose, pred_shape, pred_cam], dim=-1)
+            xc = self.proj(xc)
+            xc = self.drop(xc)
 
-        #     pred_pose = self.decpose0(xc) + pred_pose
-        #     pred_shape = self.decshape0(xc) + pred_shape
-        #     pred_cam = self.deccam0(xc) + pred_cam
+            pred_pose = self.decpose0(xc) + pred_pose
+            pred_shape = self.decshape0(xc) + pred_shape
+            pred_cam = self.deccam0(xc) + pred_cam
 
         xc_shape_cam = torch.cat([x, pred_shape], -1)   # [BT, 10+d]
         xc_pose_cam = torch.cat([x, pred_pose], -1)     # [BT, 144+d]
