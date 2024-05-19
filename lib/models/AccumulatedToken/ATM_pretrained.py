@@ -98,11 +98,4 @@ class ATM(nn.Module):
         feat = self.output_proj(feat)
         smpl_output = self.regressor(feat, is_train=is_train, J_regressor=J_regressor)
 
-        for s in smpl_output[-1]:                
-            s['theta'] = s['theta'].reshape(B, size, -1)               
-            s['verts'] = s['verts'].reshape(B, size, -1, 3)    
-            s['kp_2d'] = s['kp_2d'].reshape(B, size, -1, 2)   
-            s['kp_3d'] = s['kp_3d'].reshape(B, size, -1, 3)   
-            s['rotmat'] = s['rotmat'].reshape(B, size, -1, 3, 3) 
-
         return smpl_output
