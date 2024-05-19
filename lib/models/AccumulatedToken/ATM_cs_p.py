@@ -80,8 +80,8 @@ class ATM(nn.Module):
         else :
             size = 1
             mid_frame = self.seqlen // 2
-            cam_feat = cam_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
-            ps_feat = ps_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
+            cam_shape_feat = cam_shape_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
+            pose_feat = pose_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
         
         # pred_cam = self.regressor_cam(cam_feat)                 # [B, T, 3]
         # pred_pose, pred_shape = self.regressor(ps_feat)         #
