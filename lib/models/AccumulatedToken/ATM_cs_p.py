@@ -40,7 +40,7 @@ class ATM(nn.Module):
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
         self.fusing = CFM(embed_dim//2)
-        self.regressor =Total_Regressor(embed_dim//2 + embed_dim)
+        self.regressor = Total_Regressor(embed_dim//2 + embed_dim)
 
         ##########################
         # SMPL
