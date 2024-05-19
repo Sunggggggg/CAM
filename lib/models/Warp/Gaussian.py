@@ -6,7 +6,7 @@ class Gaussian_Fusing(nn.Module):
                  seqlen,
                  embed_dim,
                  mean=0.0, 
-                 sigma=1.0):
+                 sigma=2.0):
         super().__init__()
         self.seqlen = seqlen
         self.mean = mean
@@ -21,15 +21,37 @@ class Gaussian_Fusing(nn.Module):
         gauss_kernel /= gauss_kernel.sum()  
         return gauss_kernel.flip(-1)
     
-    def forward(self, x) :
-
-        filtered_features = []
+    def forward_direction(self, x) :
+        warpped_features = []
         for t in range(self.seqlen) :
             gauss_kernel = self.create_gaussian_kernel(t + 1)
             gauss_kernel = gauss_kernel.view(1, -1, 1)
-            filtered_feature = torch.sum(x[:, :t+1] * gauss_kernel, dim=1)
-            
-            
-            
+            filtered_feature = torch.sum(x[:, :t+1] * gauss_kernel, dim=1)  # [B, D]
 
-        return 
+            shift = self.shift_proj(filtered_feature)
+            scale = self.scale_proj(filtered_feature)
+
+            warpped_features.append(scale * x[:, t] + shift)
+        warpped_features = torch.stack(warpped_features, dim=1)
+
+        return warpped_features
+    
+    def backward_direction(self, x):
+        x = x.flip(dim=1)
+
+        warpped_features = []
+        for t in range(self.seqlen) :
+            gauss_kernel = self.create_gaussian_kernel(t + 1)
+            gauss_kernel = gauss_kernel.view(1, -1, 1)
+            filtered_feature = torch.sum(x[:, :t+1] * gauss_kernel, dim=1)  # [B, D]
+
+            shift = self.shift_proj(filtered_feature)
+            scale = self.scale_proj(filtered_feature)
+
+            warpped_features.append(scale * x[:, t] + shift)
+        return warpped_features
+
+    def forward(self, x) :
+        projed_feat = self.forward_direction(x)
+
+        return projed_feat
