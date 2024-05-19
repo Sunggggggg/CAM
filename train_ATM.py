@@ -61,7 +61,7 @@ def main(cfg):
     )
 
     # ========= Initialize networks, optimizers and lr_schedulers ========= #
-    model_module = importlib.import_module('.%s' % 'ATM', 'lib.models.AccumulatedToken')
+    model_module = importlib.import_module('.%s' % 'ATM_cs_p', 'lib.models.AccumulatedToken')
     generator = model_module.ATM().to(cfg.DEVICE)
     logger.info(f'net: {generator}')
 

@@ -27,7 +27,7 @@ class WM(nn.Module):
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
 
-    def refine_input(self, x):
+    def foward_refine(self, x):
         B, T = x.shape[:2]
         x = self.pose_shape_proj(x)
         
@@ -35,12 +35,14 @@ class WM(nn.Module):
         for t in range(1, T) :
             c_feat_a = x[:, t, :self.embed_dim//2]        # [B, 256]
             p_feat_b = x[:, t-1, self.embed_dim//2:]      # [B, 256]
-            
-            p_feat_b = self.scale[:, t] * p_feat_b + self.shift[:, t]   # Warpping
 
             c_feat = torch.cat([c_feat_a, p_feat_b], dim=-1)
             c_feats.append(c_feat)
-        c_feats = torch.stack(c_feats, dim=1)
+        c_feats = [c_feats[0]] + c_feats                  # padding
+        c_feats = torch.stack(c_feats, dim=1)             # [B, T, 512]
+
+        return 
+
 
     def forward(self, x) :
         """
@@ -53,6 +55,9 @@ class WM(nn.Module):
         cam_feat = self.cam_proj(x)                 # [B, T, d]
         cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, 128]
 
+        ##########################
+        # Camera parameter 
+        ##########################
         
         
 
