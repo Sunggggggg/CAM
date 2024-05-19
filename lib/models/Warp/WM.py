@@ -43,7 +43,6 @@ class WM(nn.Module):
 
         return 
 
-
     def forward(self, x) :
         """
         Input 

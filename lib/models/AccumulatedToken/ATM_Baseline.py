@@ -30,19 +30,16 @@ class ATM(nn.Module):
         self.cam_enc_dec = ED_Transformer(depth=cam_layer_depth, embed_dim=embed_dim//2, mlp_hidden_dim=embed_dim*2, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
-        #self.regressor_cam = CamRegressor(d_model=embed_dim//2)
 
         ##########################
         # Accumulated Token
         ##########################
         self.pose_shape_proj = nn.Linear(2048, embed_dim)
-        self.context_tokenizer = CAM(seqlen=seqlen, d_model=embed_dim, d_token=embed_dim//2)
+        #self.context_tokenizer = CAM(seqlen=seqlen, d_model=embed_dim, d_token=embed_dim//2)
         self.pose_shape_encoder = ED_Transformer(depth=po_sh_layer_depth, embed_dim=embed_dim, mlp_hidden_dim=embed_dim*2, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
-        self.fusing = CFM(embed_dim)
-        #self.fusing = FusingBlock(embed_dim)
-        #self.regressor = Regressor(embed_dim)
+        #self.fusing = CFM(embed_dim)
         self.regressor =Total_Regressor(embed_dim//2 + embed_dim)
 
         ##########################
@@ -64,8 +61,6 @@ class ATM(nn.Module):
         ##########################
         # Camera parameter 
         ##########################
-        #x = self.dual_atten(x)
-
         cam_feat = self.cam_proj(x)                 # [B, T, d]
         cam_feat = self.cam_enc_dec(cam_feat)       # [B, T, 128]
 
@@ -73,8 +68,8 @@ class ATM(nn.Module):
         # Accumulated Token
         ##########################
         x_enc = self.pose_shape_proj(x)                 # [B, T, 512]
-        context_feat = self.context_tokenizer(x_enc)    # [B, T, 512]
-        x_enc = self.fusing(x_enc, context_feat)        # 
+        #context_feat = self.context_tokenizer(x_enc)    # [B, T, 512]
+        #x_enc = self.fusing(x_enc, context_feat)        # 
         ps_feat = self.pose_shape_encoder(x_enc)
 
         ##########################
@@ -88,8 +83,6 @@ class ATM(nn.Module):
             cam_feat = cam_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
             ps_feat = ps_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
         
-        # pred_cam = self.regressor_cam(cam_feat)                 # [B, T, 3]
-        # pred_pose, pred_shape = self.regressor(ps_feat)         #
         feat = torch.cat([ps_feat, cam_feat], dim=-1)
         pred_pose, pred_shape, pred_cam = self.regressor(feat)
 
