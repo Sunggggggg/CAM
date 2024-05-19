@@ -90,7 +90,7 @@ if __name__ == "__main__":
     avg_filter = args.filter
     gender = 'neutral'
 
-    model_module = importlib.import_module('.%s' % 'ATM', 'lib.models.AccumulatedToken')
+    model_module = importlib.import_module('.%s' % 'ATM_cs_p', 'lib.models.AccumulatedToken')
     model = model_module.ATM().to(cfg.DEVICE)
     
     if cfg.TRAIN.PRETRAINED != '' and os.path.isfile(cfg.TRAIN.PRETRAINED):
