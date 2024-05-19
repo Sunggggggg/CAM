@@ -12,7 +12,10 @@ class Gaussian_Fusing(nn.Module):
         self.mean = mean
         self.sigma = sigma
 
-        self.affine_proj = nn.Linear(embed_dim, embed_dim)
+        self.affine_proj = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim), 
+            nn.ReLU()
+        )
         self.shift_proj = nn.Linear(embed_dim, embed_dim)
         self.scale_proj = nn.Linear(embed_dim, embed_dim)
 
