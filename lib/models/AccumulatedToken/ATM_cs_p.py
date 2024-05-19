@@ -13,7 +13,7 @@ from lib.models.AccumulatedToken.Fusion import FusingBlock
 class ATM(nn.Module):
     def __init__(self,
                  seqlen=16,
-                 cam_layer_depth=2,
+                 cam_layer_depth=3,
                  po_sh_layer_depth=3,
                  embed_dim=256,
                  num_head=8,
@@ -39,7 +39,7 @@ class ATM(nn.Module):
         self.pose_enc_dec = ED_Transformer(depth=po_sh_layer_depth, embed_dim=embed_dim//2, mlp_hidden_dim=embed_dim, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
-        self.fusing = CFM(embed_dim)
+        self.fusing = CFM(embed_dim//2)
         self.regressor =Total_Regressor(embed_dim//2 + embed_dim)
 
         ##########################
