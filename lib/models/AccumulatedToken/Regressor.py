@@ -110,7 +110,7 @@ class Regressor(nn.Module):
             'rotmat' : pred_rotmat
         }]
         
-        return output, (next_init_pose, next_init_shape, next_init_cam)
+        return output
 
 class CamRegressor(nn.Module) :
     def __init__(self, d_model=256, smpl_mean_params=SMPL_MEAN_PARAMS) :
