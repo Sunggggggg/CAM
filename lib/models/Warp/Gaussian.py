@@ -12,6 +12,7 @@ class Gaussian_Fusing(nn.Module):
         self.mean = mean
         self.sigma = sigma
 
+        self.affine_proj = nn.Linear(embed_dim, embed_dim)
         self.shift_proj = nn.Linear(embed_dim, embed_dim)
         self.scale_proj = nn.Linear(embed_dim, embed_dim)
 
@@ -31,7 +32,8 @@ class Gaussian_Fusing(nn.Module):
             shift = self.shift_proj(filtered_feature)
             scale = self.scale_proj(filtered_feature)
 
-            warpped_features.append(scale * x[:, t] + shift)
+            affin_warp = self.affine_proj(x[:, t])
+            warpped_features.append(scale * affin_warp + shift)
         warpped_features = torch.stack(warpped_features, dim=1)
 
         return warpped_features
