@@ -72,15 +72,6 @@ class Regressor(nn.Module):
             pred_shape = self.decshape(xc) + pred_shape
             pred_cam = self.deccam(xc) + pred_cam
 
-        if is_train:
-            next_init_pose = pred_pose.reshape(-1, seq_len, 144)[:, seq_len // 2 - 1: seq_len // 2 + 2]
-            next_init_shape = pred_shape.reshape(-1, seq_len, 10)[:, seq_len // 2 - 1: seq_len // 2 + 2]
-            next_init_cam = pred_cam.reshape(-1, seq_len, 3)[:, seq_len // 2 - 1: seq_len // 2 + 2]
-        else:
-            next_init_pose = pred_pose.reshape(-1, seq_len, 144)[:, 0][:, None, :]
-            next_init_shape = pred_shape.reshape(-1, seq_len, 10)[:, 0][:, None, :]
-            next_init_cam = pred_cam.reshape(-1, seq_len, 3)[:, 0][:, None, :]
-
         pred_rotmat = rot6d_to_rotmat(pred_pose).view(batch_size, 24, 3, 3)
 
         pred_output = self.smpl(
@@ -97,18 +88,21 @@ class Regressor(nn.Module):
             J_regressor_batch = J_regressor[None, :].expand(pred_vertices.shape[0], -1, -1).to(pred_vertices.device)
             pred_joints = torch.matmul(J_regressor_batch, pred_vertices)
             pred_joints = pred_joints[:, H36M_TO_J14, :]
+            n_joint = 14
+        else :
+            n_joint = 49
 
         pred_keypoints_2d = projection(pred_joints, pred_cam)
 
         pose = rotation_matrix_to_angle_axis(pred_rotmat.reshape(-1, 3, 3)).reshape(-1, 72)
 
         output = [{
-            'theta'  : torch.cat([pred_cam, pose, pred_shape], dim=1),
-            'verts'  : pred_vertices,
-            'kp_2d'  : pred_keypoints_2d,
-            'kp_3d'  : pred_joints,
-            'rotmat' : pred_rotmat
-        }]
+        'theta'  : torch.cat([pred_cam, pose, pred_shape], dim=1).view(-1, seq_len, 85),
+        'verts'  : pred_vertices.view(-1, seq_len, 6890, 3),
+        'kp_2d'  : pred_keypoints_2d.view(-1, seq_len, n_joint, 2),
+        'kp_3d'  : pred_joints.view(-1, seq_len, n_joint, 3),
+        'rotmat' : pred_rotmat.view(-1, seq_len, 24, 3, 3)
+    }]
         
         return output
 
