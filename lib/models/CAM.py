@@ -39,7 +39,8 @@ class CAM(nn.Module) :
         return :
             context_feat : [B, T, D]
         """
-        split_x_enc = self.proj_enc(x_enc)         # [B, T, d]
+        relative_x_enc = x_enc - x_enc[:, 0:1]     
+        split_x_enc = self.proj_enc(relative_x_enc)         # [B, T, d]
         split_x_enc = self.norm_enc(split_x_enc)
 
         context_tokens = []
@@ -52,6 +53,5 @@ class CAM(nn.Module) :
         context_feat = torch.stack(context_tokens, dim=1)  # [B, T, d]
         context_feat = self.proj_dec(context_feat)         # [B, T, D]
         context_feat = self.norm_dec(context_feat)         
-
 
         return context_feat
