@@ -81,7 +81,7 @@ class ATM(nn.Module):
         x_enc = self.pose_shape_proj(x)                     # [B, T, 512]
         context_feat = self.context_tokenizer(x_enc)        # [B, T, 512]
         x_enc = self.fusing(x_enc, context_feat)            # 
-        ps_feat = self.pose_shape_encoder(x_enc)
+        pose_shape_feat = self.pose_shape_encoder(x_enc)
 
         ##########################
         # Regressor
@@ -91,10 +91,10 @@ class ATM(nn.Module):
         else :
             size = 1
             mid_frame = self.seqlen // 2
-            cam_shape_feat = cam_shape_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
-            pose_feat = pose_feat[:, mid_frame:mid_frame+1]                 # [B, 1, d]
+            cam_feat = cam_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
+            pose_shape_feat = pose_shape_feat[:, mid_frame:mid_frame+1]                 # [B, 1, d]
         
-        feat = torch.cat([cam_shape_feat, pose_feat], dim=-1)
+        feat = torch.cat([cam_feat, pose_shape_feat], dim=-1)
         feat = self.output_proj(feat)
         smpl_output = self.regressor(feat, is_train=is_train, J_regressor=J_regressor)
 
