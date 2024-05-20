@@ -9,7 +9,7 @@ class TSM(nn.Module):
 
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, embed_dim*2),
-            nn.GELU(embed_dim*2),
+            nn.GELU(),
             nn.Linear(embed_dim*2, embed_dim)
         )
         self.norm = nn.LayerNorm(embed_dim)
