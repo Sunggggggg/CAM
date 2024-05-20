@@ -118,7 +118,7 @@ class ATM(nn.Module):
             size = 1
             mid_frame = self.seqlen // 2
             cam_feat = cam_feat[:, mid_frame:mid_frame+1]       # [B, 1, d]
-            ps_feat = ps_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
+            pose_shape_feat = pose_shape_feat[:, mid_frame:mid_frame+1]         # [B, 1, d]
 
         feature = torch.cat([pose_shape_feat, cam_feat], dim=-1)    # [B, T, 256+128]
         pred_pose, pred_shape, pred_cam = self.regressor(feature)
