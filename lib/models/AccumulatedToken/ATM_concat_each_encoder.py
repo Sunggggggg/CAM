@@ -41,7 +41,7 @@ class ATM(nn.Module):
         self.pose_shape_norm = nn.LayerNorm(pose_shape_embed_dim)
 
         self.tsm = TSM(pose_shape_embed_dim)
-        self.pose_shape_encoder = ED_Transformer(depth=po_sh_layer_depth, embed_dim=embed_dim, mlp_hidden_dim=embed_dim*2, 
+        self.pose_shape_encoder = ED_Transformer(depth=po_sh_layer_depth, embed_dim=pose_shape_embed_dim, mlp_hidden_dim=pose_shape_embed_dim*2, 
                                        h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                                        attn_drop_rate=attn_drop_rate, length=seqlen)
         
