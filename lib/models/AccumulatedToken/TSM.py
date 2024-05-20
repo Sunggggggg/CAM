@@ -38,11 +38,11 @@ class TSM(nn.Module):
         B, T = x.shape[:2]
         
         c_feats = []
-        for t in range(T-1, 0, -1) :
-            p_feat_b = x[:, t, self.embed_dim//2:]       
-            c_feat_a = x[:, t-1, :self.embed_dim//2]      
+        for t in range(T-1) :
+            f_feat_a = x[:, t+1, :self.embed_dim//2]       
+            c_feat_b = x[:, t, self.embed_dim//2:]      
 
-            c_feat = torch.cat([c_feat_a, p_feat_b], dim=-1)
+            c_feat = torch.cat([f_feat_a, c_feat_b], dim=-1)
             c_feats.append(c_feat)
         c_feats = [c_feats[0]] + c_feats                  # padding
         c_feats = torch.stack(c_feats, dim=1)            
