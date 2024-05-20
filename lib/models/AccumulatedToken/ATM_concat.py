@@ -53,7 +53,7 @@ class ATM(nn.Module):
         self.pose_shape_norm = nn.LayerNorm(pose_shape_embed_dim)
 
         self.tsm = TSM(pose_shape_embed_dim)
-        self.pose_shape_dec = Transformer(depth=2, embed_dim=cam_embed_dim, mlp_hidden_dim=cam_embed_dim*2, 
+        self.pose_shape_dec = Transformer(depth=2, embed_dim=pose_shape_embed_dim, mlp_hidden_dim=pose_shape_embed_dim*2, 
                     h=num_head, drop_rate=drop_rate, drop_path_rate=drop_path_rate, 
                     attn_drop_rate=attn_drop_rate, length=seqlen)
         
