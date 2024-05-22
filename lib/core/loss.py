@@ -68,7 +68,7 @@ class GLoTLoss(nn.Module):
             data_2d,
             data_3d,
             scores,
-            mask_ids,
+            mask_ids=None,
             data_body_mosh=None,
             data_motion_mosh=None,
             body_discriminator=None,
