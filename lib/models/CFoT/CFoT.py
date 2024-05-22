@@ -40,7 +40,7 @@ class CFoT(nn.Module):
         # Camera 
         ##########################
         cam_embed_dim = embed_dim // 4
-        self.cam_proj = nn.Linear(2048, cam_embed_dim)
+        self.cam_proj = nn.Linear(embed_dim, cam_embed_dim)
         self.cam_norm = nn.LayerNorm(cam_embed_dim)
 
         self.cam_dec = Transformer(depth=1, embed_dim=cam_embed_dim, mlp_hidden_dim=cam_embed_dim*4, 
@@ -51,7 +51,7 @@ class CFoT(nn.Module):
         # Pose, Shape 
         ##########################
         pose_shape_embed_dim = embed_dim // 2
-        self.pose_shape_proj = nn.Linear(2048, pose_shape_embed_dim)
+        self.pose_shape_proj = nn.Linear(embed_dim, pose_shape_embed_dim)
         self.pose_shape_norm = nn.LayerNorm(pose_shape_embed_dim)
         self.global_output = nn.Linear(embed_dim, 2048)
         self.local_output = nn.Linear(pose_shape_embed_dim + cam_embed_dim, 256)
