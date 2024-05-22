@@ -53,14 +53,14 @@ class CFoT(nn.Module):
         self.pose_shape_proj = nn.Linear(embed_dim, pose_shape_embed_dim)
         self.pose_shape_norm = nn.LayerNorm(pose_shape_embed_dim)
         self.global_output = nn.Linear(embed_dim, 2048)
-        self.local_output = nn.Linear(pose_shape_embed_dim + cam_embed_dim, 256)
-        self.pose_shape_enc = Transformer(depth=po_sh_layer_depth, embed_dim=pose_shape_embed_dim,
+        self.local_output = nn.Linear(pose_shape_embed_dim*2 + cam_embed_dim, 256)
+        self.pose_shape_dec = Transformer(depth=2, embed_dim=pose_shape_embed_dim*2,
                 mlp_hidden_dim=pose_shape_embed_dim*4, h=num_head, drop_rate=drop_rate,
                 drop_path_rate=drop_path_rate, attn_drop_rate=attn_drop_rate, length=seqlen//2)
         
         self.local_regressor = HSCR(drop=drop_reg_short)
         self.global_regressor = Regressor()
-        self.tsm = TSM(pose_shape_embed_dim)
+        self.tsm = TSM(pose_shape_embed_dim*2)
 
         if pretrained and os.path.isfile(pretrained):
             pretrained_dict = torch.load(pretrained)['model']
@@ -116,7 +116,7 @@ class CFoT(nn.Module):
         cam_feat = self.cam_proj(x)         # [B, T, 128]
         cam_feat = self.cam_norm(cam_feat)  # [B, T, 128]
         cam_feat = self.cam_dec(cam_feat)
-        local_cam_feat = cam_feat[self.seqlen//2 - 1:self.seqlen//2 + 2]         
+        local_cam_feat = cam_feat[:, self.seqlen//2 - 1:self.seqlen//2 + 2]         
 
         ##########################
         # Pose, Shape 
@@ -136,7 +136,7 @@ class CFoT(nn.Module):
         else:
             local_feat = local_feat[:, 1][:, None, :]                           # [B, 1, 256]
 
-        smpl_output = self.local_regressor(pose_shape_feat, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], is_train=is_train, J_regressor=J_regressor)
+        smpl_output = self.local_regressor(local_feat, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], is_train=is_train, J_regressor=J_regressor)
         
         if not is_train:    # Eval
             for s in smpl_output:

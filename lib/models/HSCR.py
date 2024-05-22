@@ -52,7 +52,7 @@ class KTD(nn.Module):
         for ancestor_idx, reg in zip(ANCESTOR_INDEX, self.joint_regs):
             
             ances = torch.cat([x] + [pose[i] for i in ancestor_idx], dim=-1)
-            ances = torch.cat((ances, global_pose[:, cnt: cnt + 6]), dim=-1)
+            ances = torch.cat((ances, global_pose[:, :, cnt: cnt + 6]), dim=-1)
 
             cnt += 1
             pose.append(reg(ances))
