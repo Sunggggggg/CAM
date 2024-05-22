@@ -174,7 +174,7 @@ class Trainer():
             start = time.time()
 
             gen_loss, loss_dict = self.criterion(
-                generator_outputs_mae=pred_global,
+                generator_outputs_global=pred_global,
                 generator_outputs_short=preds,
                 data_2d=target_2d,
                 data_3d=target_3d,
