@@ -4,8 +4,7 @@ import torch.nn as nn
 
 from lib.core.config import BASE_DATA_DIR
 from lib.models.CFoT.transformer import Transformer
-from lib.models.AccumulatedToken.enc_dec import ED_Transformer
-from lib.models.AccumulatedToken.TSM import TSM
+from lib.models.CFoT.TSM import TSM
 from lib.models.spin import Regressor
 from lib.models.HSCR import HSCR
 
