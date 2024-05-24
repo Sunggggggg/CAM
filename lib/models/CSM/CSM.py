@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 
-from models.CSM.transformer import ChannelTransformer
+from lib.models.CSM.transformer import ChannelTransformer
 from lib.core.config import BASE_DATA_DIR
 from lib.models.spin import Regressor
 from lib.models.transformer import Transformer as local_transformer_encoder
