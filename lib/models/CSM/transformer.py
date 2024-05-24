@@ -16,7 +16,7 @@ class ChannelTransformer(nn.Module):
 
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
         self.pos_embed_t = nn.Parameter(torch.zeros(1, t_length, embed_dim))
-        self.pos_embed_s = nn.Parameter(torch.zeros(1, 1, s_length, embed_dim))
+        self.pos_embed_s = nn.Parameter(torch.zeros(1, s_length, embed_dim))
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  
 
@@ -29,14 +29,15 @@ class ChannelTransformer(nn.Module):
         self.norm = norm_layer(embed_dim) 
     
     def channel_slice(self, x) :
-        C = x.shape[-1]
+        B, T, C = x.shape
 
         sliced_dim = C // self.slice
         sliced_tensor = torch.split(x, sliced_dim, dim=-1)  # l1, l2, l3, l4 : [B, T, D/4]
-        sliced_tensor = torch.stack([tensor + self.pos_embed_t for tensor in sliced_tensor])    # [B, T, 4, D/4]
+        sliced_tensor = torch.stack([tensor + self.pos_embed_t for tensor in sliced_tensor], dim=2)    # [B, T, 4, D/4]
+        sliced_tensor = torch.flatten(sliced_tensor, 0, 1)      # [BT, 4, D/4]   
         sliced_tensor = sliced_tensor + self.pos_embed_s  
         
-        sliced_tensor = torch.flatten(sliced_tensor, 1, 2)     # [B, 4T, 512]
+        sliced_tensor = torch.reshape(sliced_tensor, (B, self.slice*T, -1))
         return sliced_tensor
 
     def forward(self, x):
