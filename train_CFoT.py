@@ -61,8 +61,8 @@ def main(cfg):
     )
 
     # ========= Initialize networks, optimizers and lr_schedulers ========= #
-    model_module = importlib.import_module('.%s' % 'CFoT', 'lib.models.CFoT')
-    generator = model_module.CFoT().to(cfg.DEVICE)
+    model_module = importlib.import_module('.%s' % 'CSM', 'lib.models.CSM')
+    generator = model_module.CSM().to(cfg.DEVICE)
     logger.info(f'net: {generator}')
 
     net_params = sum(map(lambda x: x.numel(), generator.parameters()))

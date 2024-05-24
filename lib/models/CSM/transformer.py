@@ -1,30 +1,95 @@
 import torch
 import torch.nn as nn
 from functools import partial
-from lib.models.smpl import SMPL_MEAN_PARAMS
-import numpy as np
 from lib.models.trans_operator import Block
 
+class ChannelTransformer(nn.Module):
+    def __init__(self, depth=3, embed_dim=512, mlp_hidden_dim=1024,
+            t_length=16, s_length=4, slice=4,
+            h=8, drop_rate=0.1, drop_path_rate=0.2, attn_drop_rate=0.):
+        super().__init__()
+        qkv_bias = True
+        qk_scale = None
+        self.slice = slice
+        self.t_length = t_length
+        self.s_length = s_length
+
+        norm_layer = partial(nn.LayerNorm, eps=1e-6)
+        self.pos_embed_t = nn.Parameter(torch.zeros(1, t_length, embed_dim))
+        self.pos_embed_s = nn.Parameter(torch.zeros(1, 1, s_length, embed_dim))
+
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  
+
+        self.blocks = nn.ModuleList([
+            Block(
+                dim=embed_dim, num_heads=h, mlp_hidden_dim=mlp_hidden_dim, qkv_bias=qkv_bias, qk_scale=qk_scale,
+                drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer)
+            for i in range(depth)])
+
+        self.norm = norm_layer(embed_dim) 
+    
+    def channel_slice(self, x) :
+        C = x.shape[-1]
+
+        sliced_dim = C // self.slice
+        sliced_tensor = torch.split(x, sliced_dim, dim=-1)  # l1, l2, l3, l4 : [B, T, D/4]
+        sliced_tensor = torch.stack([tensor + self.pos_embed_t for tensor in sliced_tensor])    # [B, T, 4, D/4]
+        sliced_tensor = sliced_tensor + self.pos_embed_s  
+        
+        sliced_tensor = torch.flatten(sliced_tensor, 1, 2)     # [B, 4T, 512]
+        return sliced_tensor
+
+    def forward(self, x):
+        """
+        x : [B, T, D]
+        """
+        B, T = x.shape[:2]
+        x = self.channel_slice(x)
+
+        for blk in self.blocks:
+            x = blk(x)
+        x = self.norm(x)
+
+        x = x.reshape(B, T, -1)
+        return x
+
 class Transformer(nn.Module):
+    def __init__(self, depth=3, embed_dim=512, mlp_hidden_dim=1024, \
+            h=8, drop_rate=0.1, drop_path_rate=0.2, attn_drop_rate=0., length=16):
+        super().__init__()
+        qkv_bias = True
+        qk_scale = None
+
+        norm_layer = partial(nn.LayerNorm, eps=1e-6)
+        self.pos_embed = nn.Parameter(torch.zeros(1, length, embed_dim))
+
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  
+
+        self.blocks = nn.ModuleList([
+            Block(
+                dim=embed_dim, num_heads=h, mlp_hidden_dim=mlp_hidden_dim, qkv_bias=qkv_bias, qk_scale=qk_scale,
+                drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer)
+            for i in range(depth)])
+
+        self.norm = norm_layer(embed_dim) 
+
+    def forward(self, x): 
+        x = x + self.pos_embed
+
+        for blk in self.blocks:
+            x = blk(x)
+        x = self.norm(x)
+
+        return x
+
+class GlobalTransformer(nn.Module):
     def __init__(self, depth=3, embed_dim=512, mlp_hidden_dim=1024, \
             h=8, drop_rate=0.1, drop_path_rate=0.2, attn_drop_rate=0., length=27, \
             ):
         super().__init__()
         qkv_bias = True
         qk_scale = None
-        # load mean smpl pose, shape and cam
-        mean_params = np.load(SMPL_MEAN_PARAMS)
-        self.init_pose = torch.from_numpy(mean_params['pose'][:]).unsqueeze(0).to('cuda')
-        self.init_shape = torch.from_numpy(mean_params['shape'][:].astype('float32')).unsqueeze(0).to('cuda')
-        self.init_cam = torch.from_numpy(mean_params['cam']).unsqueeze(0).to('cuda')
-        
-        self.mask_token_mlp = nn.Sequential(
-            nn.Linear(24 * 6 + 13, 256),
-            nn.ReLU(),
-            nn.Linear(256, 512),
-            nn.ReLU(),
-            nn.Linear(512, embed_dim // 2)
-        )
+
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
         self.pos_embed = nn.Parameter(torch.zeros(1, length, embed_dim))
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  
@@ -42,9 +107,9 @@ class Transformer(nn.Module):
                 drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer)
             for i in range(depth // 2)])
         self.decoder_embed = nn.Linear(embed_dim, embed_dim // 2, bias=True)
+        self.mask_tokens = nn.Parameter(torch.zeros(1, 1, embed_dim // 2))
         self.decoder_pos_embed = nn.Parameter(torch.zeros(1, length, embed_dim // 2))
         self.decoder_norm = norm_layer(embed_dim // 2)
-
 
     def forward(self, x, is_train=True, mask_ratio=0.):
         if is_train:
@@ -73,10 +138,7 @@ class Transformer(nn.Module):
         # embed tokens
         x = self.decoder_embed(x)
         if ids_restore is not None:
-            mean_pose = torch.cat((self.init_pose, self.init_shape, self.init_cam), dim=-1)
-            # append mask tokens to sequence
-            mask_tokens = self.mask_token_mlp(mean_pose)
-            mask_tokens = mask_tokens.repeat(x.shape[0], ids_restore.shape[1] - x.shape[1], 1)
+            mask_tokens = self.mask_tokens.repeat(x.shape[0], ids_restore.shape[1] - x.shape[1], 1)
             x_ = torch.cat([x, mask_tokens], dim=1)  # no cls token
             x_ = torch.gather(x_, dim=1, index=ids_restore.unsqueeze(-1).repeat(1, 1, x.shape[2]))  # unshuffle
         else:
