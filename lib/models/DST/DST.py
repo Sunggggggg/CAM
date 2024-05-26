@@ -46,10 +46,7 @@ class DST(nn.Module):
         pred_spat = self.s_proj(x[:, self.seqlen//2])[:, None, :]
         pred_spat = self.spatial_modeling(pred_spat)
 
-        if is_train :
-            pred_temp = pred_temp[:, self.seqlen//2][:, None, :]
-        else :
-            pred_temp = pred_temp
+        pred_temp = pred_temp[:, self.seqlen//2][:, None, :]
         feature = torch.cat([pred_spat, pred_temp], dim=-1)    # []
 
         smpl_output = self.regressor(feature, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], is_train=is_train, J_regressor=J_regressor)
