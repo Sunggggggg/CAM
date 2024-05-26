@@ -62,7 +62,11 @@ class GMM(nn.Module):
             mem, mask_ids, ids_restore = self.trans.forward_encoder(input, mask_flag=False, mask_ratio=0.)
         pred = self.trans.forward_decoder(mem, ids_restore)  # [N, L, p*p*3]
 
-        feature = self.out_proj(pred)[:, seqlen // 2][:, None, :]
+        if is_train:
+            feature = self.out_proj(pred)
+        else:
+            feature = self.out_proj(pred)[:, seqlen // 2][:, None, :]
+
         smpl_output_global, pred_global = self.regressor(feature, is_train=is_train, J_regressor=J_regressor, n_iter=3)
         
         scores = None
