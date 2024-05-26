@@ -6,7 +6,7 @@ from lib.models.DST.regressor import Regressor
 from lib.models.trans_operator import Attention
 
 """Decoupling Spatial Temporal modeling"""
-class Model(nn.Module):
+class DST(nn.Module):
     def __init__(self,
                  seqlen=16,
                  d_model=512,
