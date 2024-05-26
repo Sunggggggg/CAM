@@ -41,6 +41,10 @@ class Regressor(nn.Module):
     def forward(self, x, init_pose, init_shape, init_cam, n_iter=3, is_train=False, J_regressor=None):
         seq_len = x.shape[1]
         x = x.reshape(-1, x.size(-1))
+        init_pose = init_pose.reshape(-1, init_pose.size(-1))
+        init_shape = init_shape.reshape(-1, init_shape.size(-1))
+        init_cam = init_cam.reshape(-1, init_cam.size(-1))
+
         batch_size = x.shape[0]
 
         pred_pose = init_pose
