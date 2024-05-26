@@ -49,7 +49,9 @@ class DST(nn.Module):
         pred_temp = pred_temp[:, self.seqlen//2][:, None, :]
         feature = torch.cat([pred_spat, pred_temp], dim=-1)    # []
 
-        smpl_output = self.regressor(feature, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], is_train=is_train, J_regressor=J_regressor)
+        smpl_output = self.regressor(feature, init_pose=pred_global[0][:, self.seqlen//2 : self.seqlen//2+1],
+                                      init_shape=pred_global[1][:, self.seqlen//2 : self.seqlen//2+1], 
+                                      init_cam=pred_global[2][:, self.seqlen//2 : self.seqlen//2+1], is_train=is_train, J_regressor=J_regressor)
         
         scores = None
         if not is_train:    # Eval
