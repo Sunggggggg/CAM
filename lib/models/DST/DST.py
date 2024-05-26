@@ -41,17 +41,18 @@ class DST(nn.Module):
         """
         B = x.shape[0]
         
+        # Temporal
         smpl_output_global, mask_ids, pred_temp, pred_global = self.temporal_modeling(x, is_train=is_train, J_regressor=J_regressor)    # [B, L, D]
-        
-        pred_spat = self.s_proj(x[:, self.seqlen//2])[:, None, :]
+        pred_temp = pred_temp[:, self.seqlen//2 : self.seqlen//2+1]         # [B, 1, 256]
+
+        # Spatial
+        pred_spat = self.s_proj(x[:, self.seqlen//2 : self.seqlen//2+1])    # [B, 1, 512]
         pred_spat = self.spatial_modeling(pred_spat)
 
-        pred_temp = pred_temp[:, self.seqlen//2][:, None, :]
-        feature = torch.cat([pred_spat, pred_temp], dim=-1)    # []
-
-        smpl_output = self.regressor(feature, init_pose=pred_global[0][:, self.seqlen//2 : self.seqlen//2+1],
-                                      init_shape=pred_global[1][:, self.seqlen//2 : self.seqlen//2+1], 
-                                      init_cam=pred_global[2][:, self.seqlen//2 : self.seqlen//2+1], is_train=is_train, J_regressor=J_regressor)
+        feature = torch.cat([pred_spat, pred_temp], dim=-1)                 # [B, 1, 256+512]
+        
+        smpl_output = self.regressor(feature, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], 
+                                     is_train=is_train, J_regressor=J_regressor)
         
         scores = None
         if not is_train:    # Eval

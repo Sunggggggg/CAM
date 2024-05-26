@@ -3,7 +3,7 @@ import os.path as osp
 import torch.nn as nn
 import os
 from lib.core.config import BASE_DATA_DIR
-from lib.models.spin import Regressor
+from lib.models.DST.regressor import SPIN_Regressor
 from lib.models.transformer_global import Transformer
 import torch.nn.functional as F
 import importlib
@@ -33,8 +33,8 @@ class GMM(nn.Module):
                 drop_path_rate=drop_path_r, attn_drop_rate=atten_drop, length=seqlen)
         self.out_proj = nn.Linear(d_model // 2, out_d_model)
         self.mask_ratio = mask_ratio
-        # regressor can predict cam, pose and shape params in an iterative way
-        self.regressor = Regressor()
+
+        self.regressor = SPIN_Regressor()
         self.initialize_weights()
         if pretrained and os.path.isfile(pretrained):
             pretrained_dict = torch.load(pretrained)['model']
@@ -42,9 +42,7 @@ class GMM(nn.Module):
             self.regressor.load_state_dict(pretrained_dict, strict=False)
             print(f'=> loaded pretrained model from \'{pretrained}\'')
 
-        self.norm = nn.LayerNorm(512)
-
-    def forward(self, input, context_feature=None, is_train=False, J_regressor=None, fine=None):
+    def forward(self, input, is_train=False, J_regressor=None, fine=None):
         """
         pred    : [B, T, 256]
         mem     : [B, T/2, 256*2]
@@ -52,21 +50,19 @@ class GMM(nn.Module):
         batch_size, seqlen = input.shape[:2]
 
         input = self.proj(input)
-        if context_feature is not None :
-            input = input + context_feature
-            input = self.norm(input)
     
         if is_train:
             mem, mask_ids, ids_restore = self.trans.forward_encoder(input, mask_flag=True, mask_ratio=self.mask_ratio)
         else:
             mem, mask_ids, ids_restore = self.trans.forward_encoder(input, mask_flag=False, mask_ratio=0.)
-        pred = self.trans.forward_decoder(mem, ids_restore)  # [N, L, p*p*3]
+        pred = self.trans.forward_decoder(mem, ids_restore)
 
         if is_train:
-            feature = self.out_proj(pred)
+            feature = self.out_proj(pred)       # [B, T, D]
         else:
-            feature = self.out_proj(pred)[:, seqlen // 2][:, None, :]
+            feature = self.out_proj(pred)[:, seqlen // 2][:, None, :]   # [B, 1, D]
 
+        # is_train  => smpl_output_global [BT, x] pred_global [B, 3, d]
         smpl_output_global, pred_global = self.regressor(feature, is_train=is_train, J_regressor=J_regressor, n_iter=3)
         
         scores = None
