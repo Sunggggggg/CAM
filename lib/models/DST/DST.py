@@ -62,7 +62,7 @@ class DST(nn.Module):
                 s['scores'] = scores
 
         else:
-            size = 3
+            size = 1
             for s in smpl_output:
                 s['theta'] = s['theta'].reshape(B, size, -1)           # [B, 3, 10]
                 s['verts'] = s['verts'].reshape(B, size, -1, 3)        # [B, 3, 6980]

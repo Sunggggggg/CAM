@@ -12,8 +12,8 @@ import torch.backends.cudnn as cudnn
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 import importlib
-from lib.core.loss import GLoTLoss
-from lib.core.trainer import Trainer
+from lib.models.DST.loss import GLoTLoss
+from lib.models.DST.trainer import Trainer
 from lib.core.config import parse_args, BASE_DATA_DIR
 from lib.utils.utils import prepare_output_dir
 from lib.dataset._loaders import get_data_loaders
