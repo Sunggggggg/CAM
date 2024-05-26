@@ -7,7 +7,7 @@ from lib.models.spin import projection
 
 class SPIN_Regressor(nn.Module):
     def __init__(self, smpl_mean_params=SMPL_MEAN_PARAMS):
-        super(Regressor, self).__init__()
+        super(SPIN_Regressor, self).__init__()
 
         npose = 24 * 6
 
