@@ -28,6 +28,7 @@ class OC(nn.Module):
             nn.ReLU()
         )
 
+        self.proj = nn.Linear(2048, 256)
         self.regressor_local = HSCR()
         self.regressor = Regressor()
         if pretrained and os.path.isfile(pretrained):
@@ -51,7 +52,7 @@ class OC(nn.Module):
         x = torch.mean(x, dim=1, keepdim=True)
 
         smpl_output_global, pred_global = self.regressor(init_x, is_train=is_train, J_regressor=J_regressor, n_iter=3)
-        smpl_output = self.regressor(x, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], is_train=is_train, J_regressor=J_regressor)
+        smpl_output = self.regressor_local(x, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], is_train=is_train, J_regressor=J_regressor)
         
         scores = None
         if not is_train:    # Eval
