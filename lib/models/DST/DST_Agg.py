@@ -21,12 +21,6 @@ class DST(nn.Module):
         super().__init__()
         self.seqlen = seqlen
         ##########################
-        # Temporal
-        ##########################
-        self.temporal_modeling = GMM(seqlen, n_layers=n_layers, d_model=d_model,
-                                      num_head=num_head, dropout=dropout, 
-                                      drop_path_r=drop_path_r, atten_drop=atten_drop, mask_ratio=mask_ratio)
-        ##########################
         # Spatial
         ##########################
         self.s_proj = nn.Linear(2048, d_model)
@@ -36,6 +30,27 @@ class DST(nn.Module):
         # Spatial
         ##########################
         self.regressor = Regressor(d_model+d_model//2)
+
+        self.initialize_weights()
+
+        ##########################
+        # Temporal
+        ##########################
+        self.temporal_modeling = GMM(seqlen, n_layers=n_layers, d_model=d_model,
+                                      num_head=num_head, dropout=dropout, 
+                                      drop_path_r=drop_path_r, atten_drop=atten_drop, mask_ratio=mask_ratio)
+
+    def initialize_weights(self):
+        self.apply(self._init_weights)
+    def _init_weights(self, m):
+        if isinstance(m, nn.Linear):
+            # we use xavier_uniform following official JAX ViT:
+            torch.nn.init.xavier_uniform_(m.weight)
+            if isinstance(m, nn.Linear) and m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.LayerNorm):
+            nn.init.constant_(m.bias, 0)
+            nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x, is_train=False, J_regressor=None):
         """
