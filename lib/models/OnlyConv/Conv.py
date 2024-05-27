@@ -13,21 +13,19 @@ class OC(nn.Module):
         super().__init__()
         self.seqlen = seqlen
         self.conv1 = nn.Sequential(
-            nn.Conv2d(seqlen, seqlen, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(seqlen),
-            nn.ReLU(inplace=True)
+            nn.Linear(seqlen, seqlen),
+            nn.LayerNorm(seqlen),
+            nn.ReLU()
         )
-        
         self.conv2 = nn.Sequential(
-            nn.Conv2d(seqlen//2, seqlen//2, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(seqlen//2),
-            nn.ReLU(inplace=True)
+            nn.Linear(seqlen//2, seqlen//2),
+            nn.LayerNorm(seqlen//2),
+            nn.ReLU()
         )
-
         self.conv3 = nn.Sequential(
-            nn.Conv2d(seqlen//4, seqlen//4, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(seqlen//4),
-            nn.ReLU(inplace=True)
+            nn.Linear(seqlen//4, seqlen//4),
+            nn.LayerNorm(seqlen//4),
+            nn.ReLU()
         )
 
         self.regressor_local = HSCR()
