@@ -4,7 +4,6 @@ import torch.nn as nn
 from lib.models.DST.GMM import GMM
 from lib.models.DST.SAM import SAM
 from lib.models.DST.regressor import Regressor
-from lib.models.trans_operator import Attention
 
 """Decoupling Spatial Temporal modeling"""
 class DST(nn.Module):
