@@ -16,15 +16,16 @@ class DST(nn.Module):
                  dropout=0., 
                  drop_path_r=0., 
                  atten_drop=0.,
-                 mask_ratio=0.,
+                 mask_ratio=0.5,
                  ):
         super().__init__()
         self.seqlen = seqlen
         ##########################
         # Temporal
         ##########################
-        self.temporal_modeling = GMM(seqlen, n_layers, d_model, num_head, 
-                                   dropout, drop_path_r, atten_drop, 0.5)
+        self.temporal_modeling = GMM(seqlen, n_layers=n_layers, d_model=d_model,
+                                      num_head=num_head, dropout=dropout, 
+                                      drop_path_r=drop_path_r, atten_drop=atten_drop, mask_ratio=mask_ratio)
         ##########################
         # Spatial
         ##########################

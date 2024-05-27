@@ -63,6 +63,7 @@ def main(cfg):
     # ========= Initialize networks, optimizers and lr_schedulers ========= #
     model_module = importlib.import_module('.%s' % 'DST', 'lib.models.DST_Agg')
     generator = model_module.DST().to(cfg.DEVICE)
+    logger.info(f'net: {generator}')
 
     net_params = sum(map(lambda x: x.numel(), generator.parameters()))
     logger.info(f'params num: {net_params}')
