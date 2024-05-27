@@ -63,6 +63,7 @@ class GMM(nn.Module):
             feature = self.out_proj(pred)[:, seqlen // 2][:, None, :]   # [B, 1, D]
 
         # is_train  => smpl_output_global [BT, x] pred_global [B, 3, d]
+        #   => smpl_output_global [B, x] pred_global [B, d]
         smpl_output_global, pred_global = self.regressor(feature, is_train=is_train, J_regressor=J_regressor, n_iter=3)
         
         scores = None

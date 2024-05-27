@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 from lib.models.DST.GMM import GMM
+from lib.models.DST.SAM import SAM
 from lib.models.DST.regressor import Regressor
 from lib.models.trans_operator import Attention
 
@@ -28,7 +29,7 @@ class DST(nn.Module):
         # Spatial
         ##########################
         self.s_proj = nn.Linear(2048, d_model)
-        self.spatial_modeling = Attention(d_model, num_heads=num_head, attn_drop=atten_drop, proj_drop=dropout)
+        self.spatial_modeling = SAM(d_model)
 
         ##########################
         # Spatial
@@ -43,11 +44,11 @@ class DST(nn.Module):
         
         # Temporal
         smpl_output_global, mask_ids, pred_temp, pred_global = self.temporal_modeling(x, is_train=is_train, J_regressor=J_regressor)    # [B, L, D]
-        pred_temp = pred_temp[:, self.seqlen//2 : self.seqlen//2+1]         # [B, 1, 256]
+        pred_temp = pred_temp[:, self.seqlen//2 : self.seqlen//2+1]         # [B, 3, 256]
 
         # Spatial
-        pred_spat = self.s_proj(x[:, self.seqlen//2 : self.seqlen//2+1])    # [B, 1, 512]
-        pred_spat = self.spatial_modeling(pred_spat)
+        pred_spat = self.s_proj(x[:, self.seqlen//2-1 : self.seqlen//2+2])  # [B, 3, 512]
+        pred_spat = self.spatial_modeling(pred_spat)                        # [B, 1, ]
 
         feature = torch.cat([pred_spat, pred_temp], dim=-1)                 # [B, 1, 256+512]
         
