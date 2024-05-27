@@ -24,7 +24,7 @@ class DST(nn.Module):
         # Temporal
         ##########################
         self.temporal_modeling = GMM(seqlen, n_layers, d_model, num_head, 
-                                   dropout, drop_path_r, atten_drop, mask_ratio)
+                                   dropout, drop_path_r, atten_drop, 0.5)
         ##########################
         # Spatial
         ##########################
