@@ -14,10 +14,10 @@ class SAM(nn.Module) :
 
 
     def forward(self, x) :
-        _x = x
         B = x.shape[0]
 
         x = self.proj1(x)   # [B, 3, D]
+        _x = x
         x = x.flatten(-2)   # [B, 3D]
         x = self.proj2(x)   # [B, D]
         x = self.act(x)
@@ -29,4 +29,5 @@ class SAM(nn.Module) :
 
         x = x.view(B, 1, 3)
         x = x @ _x
+
         return x
