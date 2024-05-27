@@ -48,7 +48,8 @@ class OC(nn.Module):
         x = self.conv3(x)
         x = x[..., self.seqlen//8-1: self.seqlen//8+1]    # [B, ]
         
-        x = x.permute(0, 2, 1)  
+        x = x.permute(0, 2, 1) 
+        x = self.proj(x) 
         x = torch.mean(x, dim=1, keepdim=True)
 
         smpl_output_global, pred_global = self.regressor(init_x, is_train=is_train, J_regressor=J_regressor, n_iter=3)
