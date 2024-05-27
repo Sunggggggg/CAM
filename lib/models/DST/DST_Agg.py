@@ -27,7 +27,7 @@ class DST(nn.Module):
         ##########################
         # Spatial
         ##########################
-        self.regressor = Regressor(d_model+d_model//2)
+        self.regressor = Regressor(2048+d_model)
 
         self.initialize_weights()
 
@@ -57,14 +57,15 @@ class DST(nn.Module):
         B = x.shape[0]
         
         # Temporal
-        smpl_output_global, mask_ids, pred_temp, pred_global = self.temporal_modeling(x, is_train=is_train, J_regressor=J_regressor)    # [B, L, D]
-        pred_temp = pred_temp[:, self.seqlen//2 : self.seqlen//2+1]         # [B, 3, 256]
-
+        smpl_output_global, mask_ids, t_feature, pred_global = self.temporal_modeling(x, is_train=is_train, J_regressor=J_regressor)    # [B, L, D]
+        if is_train :
+            t_feature = t_feature[:, self.seqlen//2:self.seqlen//2+1]       # [B, 1, 2048]
+        
         # Spatial
-        pred_spat = x[:, self.seqlen//2-1 : self.seqlen//2+2]               # [B, 3, 512]
-        pred_spat = self.spatial_modeling(pred_spat)                        # [B, 1, ]
+        s_feature = x[:, self.seqlen//2-1 : self.seqlen//2+2]               # [B, 3, 2048]
+        s_feature = self.spatial_modeling(s_feature)                        # [B, 1, 512]
 
-        feature = torch.cat([pred_spat, pred_temp], dim=-1)                 # [B, 1, 256+512]
+        feature = torch.cat([s_feature, t_feature], dim=-1)                 # [B, 1, 256+512]
         
         smpl_output = self.regressor(feature, init_pose=pred_global[0], init_shape=pred_global[1], init_cam=pred_global[2], 
                                      is_train=is_train, J_regressor=J_regressor)
