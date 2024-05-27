@@ -22,7 +22,6 @@ class DST(nn.Module):
         ##########################
         # Spatial
         ##########################
-        self.s_proj = nn.Linear(2048, d_model)
         self.spatial_modeling = SAM(d_model)
 
         ##########################
@@ -62,7 +61,7 @@ class DST(nn.Module):
         pred_temp = pred_temp[:, self.seqlen//2 : self.seqlen//2+1]         # [B, 3, 256]
 
         # Spatial
-        pred_spat = self.s_proj(x[:, self.seqlen//2-1 : self.seqlen//2+2])  # [B, 3, 512]
+        pred_spat = x[:, self.seqlen//2-1 : self.seqlen//2+2]  # [B, 3, 512]
         pred_spat = self.spatial_modeling(pred_spat)                        # [B, 1, ]
 
         feature = torch.cat([pred_spat, pred_temp], dim=-1)                 # [B, 1, 256+512]
